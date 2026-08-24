@@ -3,24 +3,38 @@ import { env } from "@/lib/env";
 
 export class BotMenus {
   /**
-   * Main welcome / start dashboard keyboard
+   * Main welcome / start dashboard keyboard for Telegram League
    */
   static mainMenu() {
     const webAppUrl = env.NEXT_PUBLIC_APP_URL;
     return new InlineKeyboard()
-      .webApp("🚀 Open Mini App", webAppUrl)
+      .webApp("🏆 Launch Telegram League", webAppUrl)
+      .row()
+      .text("🏆 Weekly League", "action:league")
+      .text("🔥 Roast Me", "action:roast")
+      .row()
+      .text("⚔️ The Rival", "action:rival")
+      .text("🎖 Mini-Awards", "action:awards")
       .row()
       .text("📊 Dashboard", "action:dashboard")
       .text("➕ Track Account", "action:track")
       .row()
       .text("👤 Tracked Accounts", "action:accounts")
-      .text("📈 Analytics", "action:analytics")
+      .text("⚙️ Settings", "action:settings");
+  }
+
+  /**
+   * League screen keyboard
+   */
+  static leagueMenu() {
+    return new InlineKeyboard()
+      .text("🔥 Roast Me", "action:roast")
+      .text("⚔️ The Rival", "action:rival")
       .row()
-      .text("📅 History", "action:history")
-      .text("🔔 Alerts", "action:alerts")
+      .text("🎖 Mini-Awards", "action:awards")
+      .text("📊 Dashboard", "action:dashboard")
       .row()
-      .text("⚙️ Settings", "action:settings")
-      .text("❓ Help", "action:help");
+      .text("« Back to Main Menu", "action:home");
   }
 
   /**
@@ -46,9 +60,9 @@ export class BotMenus {
   static accountMenu(accountId: string, isTrackingActive: boolean) {
     const kb = new InlineKeyboard()
       .text("📊 Overview", `action:acc_overview:${accountId}`)
-      .text("📅 History", `action:acc_history:${accountId}`)
+      .text("🔥 Roast Account", `action:roast_acc:${accountId}`)
       .row()
-      .text("🔥 Heatmap", `action:acc_heatmap:${accountId}`)
+      .text("📅 History", `action:acc_history:${accountId}`)
       .text("⏱ Sessions", `action:acc_sessions:${accountId}`)
       .row();
 

@@ -97,12 +97,12 @@ export default function HomePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
-            Telemetr
+            Telegram League
             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-blue-950/80 text-blue-400 border border-blue-800/60 rounded-full">
               {user?.plan || "free"}
             </span>
           </h1>
-          <p className="text-xs text-slate-400">Telegram Activity Intelligence</p>
+          <p className="text-xs text-amber-400 font-semibold">Track. Compete. Get Roasted.</p>
         </div>
 
         <Link

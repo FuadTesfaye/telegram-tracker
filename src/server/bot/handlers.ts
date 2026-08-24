@@ -3,11 +3,11 @@ import { UserRepository } from "../repositories/user.repository";
 import { AccountRepository } from "../repositories/account.repository";
 import { AccountService } from "../services/account.service";
 import { AnalyticsService } from "../services/analytics.service";
+import { LeagueService } from "../services/league.service";
 import { BotMenus } from "./menus";
 import { formatDuration, normalizeUsername } from "@/lib/utils";
 import { logger } from "@/lib/logger";
 
-// Simple in-memory conversation state for text inputs (per user)
 const userSessionState = new Map<number, { state: string; data?: any }>();
 
 export function registerBotHandlers(bot: Bot) {
@@ -27,12 +27,13 @@ export function registerBotHandlers(bot: Bot) {
     userSessionState.delete(tgUser.id);
 
     const welcomeText =
-      `👋 *Welcome to Telemetr*\n\n` +
-      `Track observable Telegram activity, understand daily & weekly patterns, and build a verified historical presence timeline.\n\n` +
-      `⚠️ *Data Ethics & Honesty:*\n` +
-      `• Data collection starts from the exact moment tracking is activated.\n` +
-      `• Activity is based on observable Telegram presence, not private messages or device screen time.\n\n` +
-      `Choose an option below or launch the Mini App:`;
+      `🏆 *Welcome to Telegram League*\n` +
+      `_Track. Compete. Get Roasted._\n\n` +
+      `Rank your tracked accounts in a weekly activity competition, unlock ridiculous titles, fight your Rival, and get roasted by actual presence numbers.\n\n` +
+      `⚠️ *Fair Play & Ethics:*\n` +
+      `• Ranks are based purely on observable Telegram presence signals.\n` +
+      `• No access to private messages, contacts, or device screen time.\n\n` +
+      `Choose an option below to enter the arena:`;
 
     await ctx.reply(welcomeText, {
       parse_mode: "Markdown",
@@ -40,48 +41,70 @@ export function registerBotHandlers(bot: Bot) {
     });
   });
 
-  // 2. /help command
-  bot.command("help", async (ctx) => {
-    const text =
-      `ℹ️ *Telemetr Help & Guidance*\n\n` +
-      `• *Dashboard*: Live statistics across all tracked accounts.\n` +
-      `• *Track Account*: Add any public @username to start tracking.\n` +
-      `• *Analytics*: Daily trends, 24-hour heatmaps, peak activity hours, and quiet windows.\n` +
-      `• *Mini App*: Touch-friendly dashboard with interactive charts and calendar.\n\n` +
-      `*Commands:*\n` +
-      `/start - Open main menu\n` +
-      `/dashboard - Summary of all accounts\n` +
-      `/track - Add new account\n` +
-      `/accounts - Manage tracked accounts\n` +
-      `/settings - Configure timezone & alerts`;
-
-    await ctx.reply(text, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.backToMain(),
-    });
+  // 2. /league command
+  bot.command("league", async (ctx) => {
+    await sendLeagueScreen(ctx);
   });
 
-  // 3. /dashboard command
+  // 3. /roast command
+  bot.command("roast", async (ctx) => {
+    await sendRoastScreen(ctx);
+  });
+
+  // 4. /rival command
+  bot.command("rival", async (ctx) => {
+    await sendRivalScreen(ctx);
+  });
+
+  // 5. /awards command
+  bot.command("awards", async (ctx) => {
+    await sendAwardsScreen(ctx);
+  });
+
+  // 6. /dashboard command
   bot.command("dashboard", async (ctx) => {
     await sendDashboardScreen(ctx);
   });
 
-  // 4. /track command
+  // 7. /track command
   bot.command("track", async (ctx) => {
     if (ctx.from) {
       userSessionState.set(ctx.from.id, { state: "AWAITING_USERNAME" });
     }
     await ctx.reply(
       `➕ *Track a Telegram Account*\n\n` +
-      `Send the public Telegram username you would like to observe:\n\n` +
+      `Send the public Telegram username to add to your competition (up to 3 accounts):\n\n` +
       `_Example:_ \`@username\` or \`https://t.me/username\``,
       { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
     );
   });
 
-  // 5. /accounts command
+  // 8. /accounts command
   bot.command("accounts", async (ctx) => {
     await sendAccountsScreen(ctx);
+  });
+
+  // 9. /help command
+  bot.command("help", async (ctx) => {
+    const text =
+      `🏆 *Telegram League Guide*\n\n` +
+      `• *Weekly League*: Compete with your 3 tracked accounts. Ranked every week.\n` +
+      `• *Roast Me*: Deterministic, hilarious roasts generated from your actual presence stats.\n` +
+      `• *The Rival*: Head-to-head live tracker against your chosen nemesis.\n` +
+      `• *Mini-Awards*: Weekly superlatives like Session King, Night Owl, and Ghost.\n` +
+      `• *Mini App*: Touch-first visual leaderboard, 24h heatmaps, and achievements.\n\n` +
+      `*Commands:*\n` +
+      `/start - Main menu\n` +
+      `/league - View current weekly leaderboard\n` +
+      `/roast - Roast the current leader\n` +
+      `/rival - Head-to-head rivalry\n` +
+      `/awards - Weekly mini-awards\n` +
+      `/track - Add account to competition`;
+
+    await ctx.reply(text, {
+      parse_mode: "Markdown",
+      reply_markup: BotMenus.backToMain(),
+    });
   });
 
   // Callback query dispatcher
@@ -96,20 +119,29 @@ export function registerBotHandlers(bot: Bot) {
       if (data === "action:home") {
         userSessionState.delete(tgUser.id);
         const text =
-          `👋 *Telemetr Dashboard*\n\n` +
-          `Select an option below to manage tracked accounts, inspect analytics, or launch the Mini App:`;
+          `🏆 *Telegram League Arena*\n` +
+          `_Track. Compete. Get Roasted._\n\n` +
+          `Select an option below to view the weekly leaderboard, challenge your Rival, or open the Mini App:`;
         await ctx.editMessageText(text, {
           parse_mode: "Markdown",
           reply_markup: BotMenus.mainMenu(),
         });
+      } else if (data === "action:league") {
+        await sendLeagueScreen(ctx, true);
+      } else if (data === "action:roast") {
+        await sendRoastScreen(ctx, true);
+      } else if (data === "action:rival") {
+        await sendRivalScreen(ctx, true);
+      } else if (data === "action:awards") {
+        await sendAwardsScreen(ctx, true);
       } else if (data === "action:dashboard") {
         await sendDashboardScreen(ctx, true);
       } else if (data === "action:track") {
         userSessionState.set(tgUser.id, { state: "AWAITING_USERNAME" });
         await ctx.editMessageText(
           `➕ *Track a Telegram Account*\n\n` +
-          `Send the public Telegram username you want to observe:\n\n` +
-          `_Example:_ \`@username\` or \`https://t.me/username\``,
+          `Send the public Telegram username to add to your competition (up to 3 slots):\n\n` +
+          `_Example:_ \`@username\``,
           { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
         );
       } else if (data === "action:accounts") {
@@ -125,17 +157,17 @@ export function registerBotHandlers(bot: Bot) {
         try {
           const acc = await AccountService.addAccountToTrack(user.id, username);
           await ctx.editMessageText(
-            `✅ *Tracking Activated*\n\n` +
-            `*${acc.displayName || "@" + acc.username}* is now being monitored for observable presence.\n\n` +
-            `• Historical data collection started: \`${acc.trackingStartedAt.toUTCString()}\`\n` +
-            `• You can view daily activity, 24-hour heatmaps, and sessions anytime.`,
+            `✅ *Competitor Enrolled!*\n\n` +
+            `*${acc.displayName || "@" + acc.username}* has joined your Telegram League.\n\n` +
+            `• Historical presence tracking begins now.\n` +
+            `• Check \`/league\` anytime to inspect weekly standings.`,
             {
               parse_mode: "Markdown",
               reply_markup: BotMenus.accountMenu(acc.id, true),
             }
           );
         } catch (err: any) {
-          await ctx.editMessageText(`❌ *Error:* ${err.message || "Failed to start tracking"}`, {
+          await ctx.editMessageText(`❌ *Error:* ${err.message || "Failed to add competitor"}`, {
             parse_mode: "Markdown",
             reply_markup: BotMenus.backToMain(),
           });
@@ -162,35 +194,16 @@ export function registerBotHandlers(bot: Bot) {
         const accountId = data.replace("action:delete_acc:", "");
         await AccountService.deleteAccount(accountId);
         await ctx.editMessageText(
-          `🗑 *Account and historical tracking data deleted successfully.*`,
+          `🗑 *Competitor removed from Telegram League.*`,
           { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
         );
-      } else if (data === "action:analytics" || data === "action:history") {
-        await sendDashboardScreen(ctx, true);
       } else if (data === "action:settings") {
         await ctx.editMessageText(
-          `⚙️ *Telemetr Settings*\n\n` +
-          `• Timezone: \`UTC\` (changeable in Mini App)\n` +
-          `• Daily Summary: \`Enabled (21:00)\`\n` +
-          `• Weekly Report: \`Enabled (Mondays)\`\n` +
-          `• Session Alert Threshold: \`60 minutes\`\n\n` +
-          `Use the Mini App for full custom configuration.`,
-          { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
-        );
-      } else if (data === "action:alerts") {
-        await ctx.editMessageText(
-          `🔔 *Activity Alerts*\n\n` +
-          `• *Long Session Alert*: Triggered when an account stays active > 60m.\n` +
-          `• *Anomaly Detection*: Triggered when daily activity exceeds 2σ deviation.\n\n` +
-          `Notifications will be delivered directly to this chat.`,
-          { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
-        );
-      } else if (data === "action:help") {
-        await ctx.editMessageText(
-          `ℹ️ *Telemetr Activity Intelligence*\n\n` +
-          `• *Observable Signals*: Telegram exposes online, offline, and coarse presence.\n` +
-          `• *Session State Machine*: Converts raw status updates into normalized activity periods.\n` +
-          `• *Mini App*: For interactive charts, heatmaps, and exports, click "Open Mini App".`,
+          `⚙️ *Telegram League Settings*\n\n` +
+          `• Weekly Winner Notification: \`Enabled\`\n` +
+          `• Timezone: \`UTC\`\n` +
+          `• League Tiers: \`Bronze (<10h), Silver (10-20h), Gold (20-30h), Diamond (30-40h), Royalty (40h+)\`\n\n` +
+          `Use the Mini App for full customization.`,
           { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
         );
       }
@@ -217,7 +230,7 @@ export function registerBotHandlers(bot: Bot) {
         return;
       }
 
-      await ctx.reply(`🔍 Resolving Telegram account for \`@${username}\`...`, {
+      await ctx.reply(`🔍 Resolving competitor \`@${username}\`...`, {
         parse_mode: "Markdown",
       });
 
@@ -232,11 +245,10 @@ export function registerBotHandlers(bot: Bot) {
 
       const name = [target.firstName, target.lastName].filter(Boolean).join(" ") || target.username;
       await ctx.reply(
-        `👤 *Account Found*\n\n` +
+        `👤 *Competitor Found*\n\n` +
         `• Name: *${name}*\n` +
-        `• Username: \`@${target.username}\`\n` +
-        `• Telegram User ID: \`${target.telegramUserId}\`\n\n` +
-        `Start observing this account? Historical data will accumulate from the moment you click Start.`,
+        `• Username: \`@${target.username}\`\n\n` +
+        `Enroll this account in your Telegram League competition?`,
         {
           parse_mode: "Markdown",
           reply_markup: BotMenus.trackConfirmMenu(target.username!),
@@ -248,32 +260,170 @@ export function registerBotHandlers(bot: Bot) {
 
 // --- Screen Builders ---
 
+async function sendLeagueScreen(ctx: Context, edit: boolean = false) {
+  const tgUser = ctx.from;
+  if (!tgUser) return;
+
+  const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
+  const leaderboard = await LeagueService.getWeeklyLeaderboard(user.id);
+
+  if (leaderboard.competitors.length === 0) {
+    const text =
+      `🏆 *TELEGRAM LEAGUE*\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `No competitors enrolled yet! Add up to 3 accounts to begin the weekly competition.`;
+
+    if (edit) {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
+    } else {
+      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
+    }
+    return;
+  }
+
+  const medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
+  const rows = leaderboard.competitors
+    .map((c, i) => `${medals[i] || "•"} *${c.displayName}*\n   \`${c.formattedDuration}\` (${c.sessionCount} sessions)\n   ${c.title}`)
+    .join("\n\n");
+
+  const runnerUp = leaderboard.competitors[1];
+  const gapText = runnerUp
+    ? `\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n👀 *Battle for the Crown:*\n*${runnerUp.displayName}* is only \`${runnerUp.formattedGapToLeader}\` away from stealing the crown!`
+    : "";
+
+  const text =
+    `🏆 *TELEGRAM LEAGUE — WEEK ${leaderboard.weekNumber}*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `${rows}` +
+    gapText;
+
+  if (edit) {
+    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
+  } else {
+    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
+  }
+}
+
+async function sendRoastScreen(ctx: Context, edit: boolean = false) {
+  const tgUser = ctx.from;
+  if (!tgUser) return;
+
+  const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
+  const leaderboard = await LeagueService.getWeeklyLeaderboard(user.id);
+
+  if (leaderboard.competitors.length === 0) {
+    const text = `🔥 *Roast Me*\n\nEnroll at least one account to get roasted!`;
+    if (edit) {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
+    } else {
+      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
+    }
+    return;
+  }
+
+  const victim = leaderboard.competitors[0];
+  const roastData = LeagueService.generateRoast(victim, 1, leaderboard.competitors.length);
+
+  const text =
+    `🔥 *TELEGRAM LEAGUE ROAST*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `🎯 *Target:* *${victim.displayName}*\n` +
+    `📊 *Observed:* \`${victim.formattedDuration}\` (${victim.sessionCount} sessions)\n` +
+    `👑 *Title:* ${victim.title}\n\n` +
+    `💬 _"${roastData.roast}"_\n\n` +
+    `${roastData.verdict}`;
+
+  if (edit) {
+    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
+  } else {
+    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
+  }
+}
+
+async function sendRivalScreen(ctx: Context, edit: boolean = false) {
+  const tgUser = ctx.from;
+  if (!tgUser) return;
+
+  const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
+  const rivalData = await LeagueService.getRivalStatus(user.id);
+
+  if (!rivalData) {
+    const text = `⚔️ *The Rival*\n\nYou need at least 2 tracked accounts to activate head-to-head rivalry mode!`;
+    if (edit) {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
+    } else {
+      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
+    }
+    return;
+  }
+
+  const { userAccount, rivalAccount, statusMessage } = rivalData;
+
+  const text =
+    `⚔️ *HEAD-TO-HEAD RIVALRY*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `👑 *${userAccount?.displayName}:* \`${userAccount?.formattedDuration}\`\n` +
+    `😈 *${rivalAccount?.displayName}:* \`${rivalAccount?.formattedDuration}\`\n\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `${statusMessage}`;
+
+  if (edit) {
+    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
+  } else {
+    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
+  }
+}
+
+async function sendAwardsScreen(ctx: Context, edit: boolean = false) {
+  const tgUser = ctx.from;
+  if (!tgUser) return;
+
+  const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
+  const leaderboard = await LeagueService.getWeeklyLeaderboard(user.id);
+
+  if (leaderboard.awards.length === 0) {
+    const text = `🎖 *Mini-Awards*\n\nNo awards assigned yet. Ranks calculate every week based on observed presence.`;
+    if (edit) {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
+    } else {
+      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
+    }
+    return;
+  }
+
+  const rows = leaderboard.awards
+    .map((a) => `${a.icon} *${a.title}*\n   Recipient: *${a.recipientName}*\n   _${a.statDescription}_\n   Badge: \`${a.badge}\``)
+    .join("\n\n");
+
+  const text =
+    `🎖 *WEEKLY MINI-AWARDS*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `${rows}`;
+
+  if (edit) {
+    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
+  } else {
+    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
+  }
+}
+
 async function sendDashboardScreen(ctx: Context, edit: boolean = false) {
   const tgUser = ctx.from;
   if (!tgUser) return;
 
-  const user = await UserRepository.findOrCreate({
-    telegramId: tgUser.id,
-    username: tgUser.username,
-  });
-
+  const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
   const accounts = await AccountRepository.listByOwner(user.id);
+
   if (accounts.length === 0) {
     const text =
       `📊 *Dashboard Overview*\n\n` +
       `👤 *No Tracked Accounts*\n\n` +
-      `You are not observing any accounts yet. Start tracking a Telegram username to accumulate historical presence analytics.`;
+      `Start tracking a Telegram account to join the competition.`;
 
     if (edit) {
-      await ctx.editMessageText(text, {
-        parse_mode: "Markdown",
-        reply_markup: BotMenus.mainMenu(),
-      });
+      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
     } else {
-      await ctx.reply(text, {
-        parse_mode: "Markdown",
-        reply_markup: BotMenus.mainMenu(),
-      });
+      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
     }
     return;
   }
@@ -291,23 +441,16 @@ async function sendDashboardScreen(ctx: Context, edit: boolean = false) {
   }
 
   const text =
-    `📊 *Telemetr Master Dashboard*\n\n` +
-    `• Tracked accounts: *${accounts.length}*\n` +
+    `📊 *Telegram League Master Dashboard*\n\n` +
+    `• Tracked accounts: *${accounts.length} / 3*\n` +
     `• Total observed today: *${formatDuration(totalActiveToday)}*\n\n` +
-    `*Accounts Summary:*\n` +
-    accountsText.join("\n") +
-    `\n\n_Tap an account below to view deep analytics or open the Mini App:_`;
+    `*Competitors:*\n` +
+    accountsText.join("\n");
 
   if (edit) {
-    await ctx.editMessageText(text, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.accountsListMenu(accounts),
-    });
+    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.accountsListMenu(accounts) });
   } else {
-    await ctx.reply(text, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.accountsListMenu(accounts),
-    });
+    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.accountsListMenu(accounts) });
   }
 }
 
@@ -319,21 +462,15 @@ async function sendAccountsScreen(ctx: Context, edit: boolean = false) {
   const accounts = await AccountRepository.listByOwner(user.id);
 
   const text =
-    `👤 *Tracked Accounts (${accounts.length})*\n\n` +
+    `👤 *Tracked Competitors (${accounts.length} / 3 slots)*\n\n` +
     (accounts.length === 0
-      ? `No accounts are currently being tracked. Tap below to add one.`
-      : `Select an account to view session history, heatmap, and trends:`);
+      ? `No accounts enrolled. Tap below to add your first competitor.`
+      : `Select a competitor to view session history and roasts:`);
 
   if (edit) {
-    await ctx.editMessageText(text, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.accountsListMenu(accounts),
-    });
+    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.accountsListMenu(accounts) });
   } else {
-    await ctx.reply(text, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.accountsListMenu(accounts),
-    });
+    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.accountsListMenu(accounts) });
   }
 }
 
@@ -348,19 +485,21 @@ async function sendAccountDetailScreen(ctx: Context, accountId: string, edit: bo
 
   const acc = overview.account;
   const statusPill = acc.lastSeenStatus === "online" ? "🟢 Currently Active" : "⚪ Offline";
-  const trendSign = overview.weeklyTrend.direction === "up" ? "📈" : overview.weeklyTrend.direction === "down" ? "📉" : "➡️";
+  const title = LeagueService.generateTitle({
+    totalActiveSeconds: overview.sevenDays.totalSeconds,
+    longestSessionSeconds: overview.personalBests.longestSessionSeconds,
+    sessionCount: overview.sevenDays.sessionCount,
+    nightActivitySeconds: 0,
+    morningActivitySeconds: 0,
+  });
 
   const text =
     `👤 *${acc.displayName || "@" + acc.username}*\n` +
-    `${statusPill}\n\n` +
-    `• *Tracked Since:* \`${new Date(acc.trackingStartedAt).toLocaleDateString()}\`\n` +
+    `${statusPill} — ${title}\n\n` +
     `• *Observed Today:* \`${overview.today.formattedDuration}\` (${overview.today.sessionCount} sessions)\n` +
     `• *7-Day Total:* \`${overview.sevenDays.formattedDuration}\`\n` +
-    `• *30-Day Total:* \`${overview.thirtyDays.formattedDuration}\`\n` +
-    `• *Weekly Trend:* ${trendSign} \`${overview.weeklyTrend.changePercentage > 0 ? "+" : ""}${overview.weeklyTrend.changePercentage}%\`\n` +
-    `• *Average Session:* \`${formatDuration(overview.today.averageSessionSeconds || overview.sevenDays.averageSessionSeconds)}\`\n` +
     `• *Peak Hour:* \`${overview.sevenDays.peakHour}:00 - ${overview.sevenDays.peakHour + 1}:00\`\n` +
-    `• *Active Streak:* \`${overview.streaks.currentStreakDays} days\` (Best: \`${overview.streaks.longestStreakDays}d\`)`;
+    `• *Active Streak:* \`${overview.streaks.currentStreakDays} days\``;
 
   if (edit) {
     await ctx.editMessageText(text, {

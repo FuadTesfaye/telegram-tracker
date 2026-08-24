@@ -5,9 +5,9 @@ import { TelegramProvider } from "@/components/telegram-provider";
 import { BottomNav } from "@/components/bottom-nav";
 
 export const metadata: Metadata = {
-  title: "Telemetr — Telegram Activity Intelligence",
+  title: "Telegram League — Track. Compete. Get Roasted.",
   description:
-    "Track observable Telegram activity, understand presence patterns, and explore verified historical analytics.",
+    "Rank your tracked Telegram accounts in weekly competitions, unlock ridiculous titles, fight your Rival, and get roasted by actual presence numbers.",
 };
 
 export default function RootLayout({
