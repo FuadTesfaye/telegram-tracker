@@ -3,6 +3,7 @@ import Script from "next/script";
 import "./globals.css";
 import { TelegramProvider } from "@/components/telegram-provider";
 import { BottomNav } from "@/components/bottom-nav";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 export const metadata: Metadata = {
   title: "Telegram League — Track. Compete. Get Roasted.",
@@ -24,12 +25,14 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
       </head>
-      <body className="antialiased bg-slate-950 text-slate-100 min-h-screen">
+      <body className="antialiased bg-[#090b10] text-slate-100 min-h-screen">
         <TelegramProvider>
-          <div className="max-w-md mx-auto min-h-screen pb-20 px-4 pt-4">
-            {children}
-            <BottomNav />
-          </div>
+          <ErrorBoundary>
+            <div className="max-w-md mx-auto min-h-screen pb-20 px-4 pt-4">
+              {children}
+              <BottomNav />
+            </div>
+          </ErrorBoundary>
         </TelegramProvider>
       </body>
     </html>

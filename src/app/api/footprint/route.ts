@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { FootprintService } from "@/server/services/footprint.service";
+import { handleApiError, AppError } from "@/lib/error-handler";
 
 export async function GET(req: Request) {
   try {
@@ -7,13 +8,13 @@ export async function GET(req: Request) {
     const userId = searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+      throw new AppError("Missing required user session identifier", 400, "UNAUTHORIZED");
     }
 
     const footprint = await FootprintService.getUserFootprint(userId);
     return NextResponse.json({ success: true, footprint });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return handleApiError(err);
   }
 }
 
@@ -23,12 +24,12 @@ export async function POST(req: Request) {
     const { chatId, customLabel } = body;
 
     if (!chatId || !customLabel) {
-      return NextResponse.json({ error: "Missing chatId or customLabel" }, { status: 400 });
+      throw new AppError("Please provide both a chat identifier and label", 400, "VALIDATION_ERROR");
     }
 
     const updated = await FootprintService.updateChatLabel(chatId, customLabel);
     return NextResponse.json({ success: true, chat: updated });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return handleApiError(err);
   }
 }

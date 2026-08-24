@@ -1,7 +1,6 @@
 import { Bot } from "grammy";
 import { env } from "@/lib/env";
 import { registerBotHandlers } from "./handlers";
-import { logger } from "@/lib/logger";
 
 let botInstance: Bot | null = null;
 
@@ -29,12 +28,18 @@ export function getTelegramBot(): Bot {
     },
   });
 
-  // Error boundary
-  botInstance.catch((err) => {
-    logger.error("Telegram bot error caught in boundary", {
-      ctx: err.ctx?.update?.update_id,
-      error: err.error,
-    });
+  // Safe user-friendly error boundary for bot
+  botInstance.catch(async (err) => {
+    try {
+      if (err.ctx && typeof err.ctx.reply === "function") {
+        await err.ctx.reply(
+          "⚠️ <i>An unexpected hiccup occurred. We're handling it!</i>\n\nPlease tap /start or try again in a moment.",
+          { parse_mode: "HTML" }
+        );
+      }
+    } catch {
+      // Ignore if user blocked or chat unreachable
+    }
   });
 
   registerBotHandlers(botInstance);

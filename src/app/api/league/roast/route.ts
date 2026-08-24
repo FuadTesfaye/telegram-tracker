@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { LeagueService } from "@/server/services/league.service";
 import type { RoastLevel } from "@/server/services/roast-engine.service";
+import { handleApiError, AppError } from "@/lib/error-handler";
 
 export async function GET(req: Request) {
   try {
@@ -10,12 +11,16 @@ export async function GET(req: Request) {
     const level = (searchParams.get("level") as RoastLevel) || "normal";
 
     if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+      throw new AppError("Missing required user session identifier", 400, "UNAUTHORIZED");
     }
 
     const leaderboard = await LeagueService.getWeeklyLeaderboard(userId);
     if (leaderboard.competitors.length === 0) {
-      return NextResponse.json({ error: "No accounts found to roast" }, { status: 404 });
+      throw new AppError(
+        "No competitor accounts enrolled yet. Add an account to generate a custom roast.",
+        404,
+        "NOT_FOUND"
+      );
     }
 
     const target = accountId
@@ -33,7 +38,7 @@ export async function GET(req: Request) {
       target,
       ...roast,
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return handleApiError(err);
   }
 }

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { AccountRepository } from "@/server/repositories/account.repository";
 import { AccountService } from "@/server/services/account.service";
-import { UserRepository } from "@/server/repositories/user.repository";
+import { handleApiError } from "@/lib/error-handler";
 
 const createAccountSchema = z.object({
   userId: z.string().uuid(),
@@ -17,30 +17,23 @@ export async function GET(req: Request) {
     const userId = searchParams.get("userId");
 
     if (!userId) {
-      // Default to first user or all active
       const all = await AccountRepository.listAllActive();
       return NextResponse.json({ accounts: all });
     }
 
     const accounts = await AccountRepository.listByOwner(userId);
     return NextResponse.json({ accounts });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return handleApiError(err);
   }
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const parsed = createAccountSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.format() },
-        { status: 400 }
-      );
-    }
+    const parsed = createAccountSchema.parse(body);
 
-    const { userId, username, label, notes } = parsed.data;
+    const { userId, username, label, notes } = parsed;
     const created = await AccountService.addAccountToTrack(
       userId,
       username,
@@ -49,7 +42,7 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({ success: true, account: created });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 400 });
+  } catch (err: unknown) {
+    return handleApiError(err);
   }
 }

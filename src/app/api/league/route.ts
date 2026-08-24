@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { LeagueService } from "@/server/services/league.service";
-import { UserRepository } from "@/server/repositories/user.repository";
+import { handleApiError, AppError } from "@/lib/error-handler";
 
 export async function GET(req: Request) {
   try {
@@ -9,7 +9,7 @@ export async function GET(req: Request) {
     const timezone = searchParams.get("timezone") || "UTC";
 
     if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+      throw new AppError("Missing required user session identifier", 400, "UNAUTHORIZED");
     }
 
     const leaderboard = await LeagueService.getWeeklyLeaderboard(userId, timezone);
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
       ...leaderboard,
       prediction,
     });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    return handleApiError(err);
   }
 }
