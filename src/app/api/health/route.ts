@@ -1,34 +1,52 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
+import { db, dbCluster } from "@/db";
 import { sql } from "drizzle-orm";
 import { getTelegramClient } from "@/tracker/client/client-factory";
 import { AccountRepository } from "@/server/repositories/account.repository";
+import { queueManager } from "@/lib/queue-manager";
+import { rateLimiter } from "@/lib/rate-limiter";
+import { groqLoadBalancer } from "@/lib/groq-load-balancer";
 
 export async function GET() {
-  const status = {
-    status: "ok",
-    timestamp: new Date().toISOString(),
-    database: "healthy",
-    telegramTracker: "connected",
-    activeAccounts: 0,
-  };
+  const start = Date.now();
 
   try {
-    // Check PostgreSQL connectivity
-    await db.execute(sql`SELECT 1`);
+    // Check PostgreSQL connectivity via load balancer cluster
+    await db.execute(sql`SELECT 1 as ping`);
     const active = await AccountRepository.listAllActive();
-    status.activeAccounts = active.length;
 
     const client = getTelegramClient();
-    status.telegramTracker = client.isConnected() ? "connected" : "ready";
+    const telegramStatus = client.isConnected() ? "connected" : "ready";
 
-    return NextResponse.json(status);
+    const cluster = dbCluster.getClusterStatus();
+    const queue = queueManager.getStats();
+    const rateLimits = rateLimiter.getStats();
+    const groq = groqLoadBalancer.getStats();
+
+    return NextResponse.json({
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      latencyMs: Date.now() - start,
+      database: {
+        status: cluster.healthyNodes > 0 ? "healthy" : "degraded",
+        cluster,
+      },
+      queue,
+      rateLimiter: {
+        activeBuckets: rateLimits.trackedBuckets,
+      },
+      groqLoadBalancer: groq,
+      telegramTracker: telegramStatus,
+      activeAccounts: active.length,
+    });
   } catch (err: any) {
     return NextResponse.json(
       {
-        status: "unhealthy",
-        error: err.message || "Health check failed",
+        status: "degraded",
+        error: err.message || "Health check degraded",
         timestamp: new Date().toISOString(),
+        database: dbCluster.getClusterStatus(),
+        queue: queueManager.getStats(),
       },
       { status: 503 }
     );
