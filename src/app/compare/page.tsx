@@ -7,68 +7,43 @@ import { formatDuration } from "@/lib/utils";
 import type { AccountAnalyticsOverview } from "@/types";
 import { GitCompare } from "lucide-react";
 
+import { useCachedData } from "@/lib/use-cached-data";
+
 export default function ComparePage() {
   const { user, hapticFeedback } = useTelegram();
-  const [accounts, setAccounts] = useState<any[]>([]);
   const [accA, setAccA] = useState<string>("");
   const [accB, setAccB] = useState<string>("");
-  const [dataA, setDataA] = useState<AccountAnalyticsOverview | null>(null);
-  const [dataB, setDataB] = useState<AccountAnalyticsOverview | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const { data: accountsData } = useCachedData<{ accounts: any[] }>(
+    user ? `/api/accounts?userId=${user.id}` : null,
+    { ttlMs: 20000 }
+  );
+
+  const accounts = accountsData?.accounts || [];
 
   useEffect(() => {
-    if (!user) return;
+    if (accounts.length >= 2 && (!accA || !accB)) {
+      setAccA(accounts[0].id);
+      setAccB(accounts[1].id);
+    } else if (accounts.length === 1 && !accA) {
+      setAccA(accounts[0].id);
+    }
+  }, [accounts, accA, accB]);
 
-    const fetchAccounts = async () => {
-      try {
-        const res = await fetch(`/api/accounts?userId=${user.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          const list = data.accounts || [];
-          setAccounts(list);
-          if (list.length >= 2) {
-            setAccA(list[0].id);
-            setAccB(list[1].id);
-          } else if (list.length === 1) {
-            setAccA(list[0].id);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load accounts:", err);
-      }
-    };
+  const { data: resAData, isLoading: isLoadingA } = useCachedData<{ overview: AccountAnalyticsOverview }>(
+    accA ? `/api/accounts/${accA}/overview` : null,
+    { ttlMs: 20000 }
+  );
 
-    fetchAccounts();
-  }, [user]);
+  const { data: resBData, isLoading: isLoadingB } = useCachedData<{ overview: AccountAnalyticsOverview }>(
+    accB ? `/api/accounts/${accB}/overview` : null,
+    { ttlMs: 20000 }
+  );
 
-  useEffect(() => {
-    if (!accA || !accB) return;
+  const dataA = resAData?.overview || null;
+  const dataB = resBData?.overview || null;
+  const isLoading = (isLoadingA && !dataA) || (isLoadingB && !dataB);
 
-    const fetchComparisons = async () => {
-      try {
-        setIsLoading(true);
-        const [resA, resB] = await Promise.all([
-          fetch(`/api/accounts/${accA}/overview`),
-          fetch(`/api/accounts/${accB}/overview`),
-        ]);
-
-        if (resA.ok) {
-          const a = await resA.json();
-          setDataA(a.overview);
-        }
-        if (resB.ok) {
-          const b = await resB.json();
-          setDataB(b.overview);
-        }
-      } catch (err) {
-        console.error("Failed to compare accounts:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchComparisons();
-  }, [accA, accB]);
 
   return (
     <div className="space-y-4">

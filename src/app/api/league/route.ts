@@ -15,11 +15,18 @@ export async function GET(req: Request) {
     const leaderboard = await LeagueService.getWeeklyLeaderboard(userId, timezone);
     const prediction = await LeagueService.getMidweekPrediction(userId);
 
-    return NextResponse.json({
-      success: true,
-      ...leaderboard,
-      prediction,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        ...leaderboard,
+        prediction,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=10, s-maxage=20, stale-while-revalidate=60",
+        },
+      }
+    );
   } catch (err: unknown) {
     return handleApiError(err);
   }

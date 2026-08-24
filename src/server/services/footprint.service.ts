@@ -2,6 +2,7 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { telegramChats, chatActivity, trackedAccounts, users } from "@/db/schema";
 import { formatDuration } from "@/lib/utils";
+import { cache } from "@/lib/cache";
 
 export interface ChatFootprintItem {
   chatId: string;
@@ -49,6 +50,7 @@ export class FootprintService {
       customLabel?: string;
     }
   ) {
+    cache.invalidatePattern(`footprint:${ownerUserId}`);
     const [chat] = await db
       .insert(telegramChats)
       .values({
@@ -105,92 +107,94 @@ export class FootprintService {
    * Computes the complete observable chat footprint for a user (e.g. My Telegram mode)
    */
   static async getUserFootprint(ownerUserId: string): Promise<UserFootprintOverview> {
-    const chats = await db
-      .select({
-        id: telegramChats.id,
-        telegramChatId: telegramChats.telegramChatId,
-        chatType: telegramChats.chatType,
-        title: telegramChats.title,
-        username: telegramChats.username,
-        customLabel: telegramChats.customLabel,
-        totalActiveSeconds: sql<number>`COALESCE(SUM(${chatActivity.activeSeconds}), 0)`,
-        totalMessageCount: sql<number>`COALESCE(SUM(${chatActivity.messageCount}), 0)`,
-        totalReplyCount: sql<number>`COALESCE(SUM(${chatActivity.replyCount}), 0)`,
-      })
-      .from(telegramChats)
-      .leftJoin(chatActivity, eq(telegramChats.id, chatActivity.chatId))
-      .where(eq(telegramChats.ownerUserId, ownerUserId))
-      .groupBy(telegramChats.id)
-      .orderBy(desc(sql`SUM(${chatActivity.activeSeconds})`));
+    return cache.getOrSet(`footprint:${ownerUserId}`, async () => {
+      const chats = await db
+        .select({
+          id: telegramChats.id,
+          telegramChatId: telegramChats.telegramChatId,
+          chatType: telegramChats.chatType,
+          title: telegramChats.title,
+          username: telegramChats.username,
+          customLabel: telegramChats.customLabel,
+          totalActiveSeconds: sql<number>`COALESCE(SUM(${chatActivity.activeSeconds}), 0)`,
+          totalMessageCount: sql<number>`COALESCE(SUM(${chatActivity.messageCount}), 0)`,
+          totalReplyCount: sql<number>`COALESCE(SUM(${chatActivity.replyCount}), 0)`,
+        })
+        .from(telegramChats)
+        .leftJoin(chatActivity, eq(telegramChats.id, chatActivity.chatId))
+        .where(eq(telegramChats.ownerUserId, ownerUserId))
+        .groupBy(telegramChats.id)
+        .orderBy(desc(sql`SUM(${chatActivity.activeSeconds})`));
 
-    // If no chats observed yet, provide deterministic baseline data for display
-    let totalSecs = 0;
-    let totalMsgs = 0;
-    let groupSecs = 0;
-    let privSecs = 0;
-    let chanSecs = 0;
+      // If no chats observed yet, provide deterministic baseline data for display
+      let totalSecs = 0;
+      let totalMsgs = 0;
+      let groupSecs = 0;
+      let privSecs = 0;
+      let chanSecs = 0;
 
-    const formattedList: ChatFootprintItem[] = [];
+      const formattedList: ChatFootprintItem[] = [];
 
-    for (const c of chats) {
-      const secs = Number(c.totalActiveSeconds) || 0;
-      const msgs = Number(c.totalMessageCount) || 0;
-      const reps = Number(c.totalReplyCount) || 0;
+      for (const c of chats) {
+        const secs = Number(c.totalActiveSeconds) || 0;
+        const msgs = Number(c.totalMessageCount) || 0;
+        const reps = Number(c.totalReplyCount) || 0;
 
-      totalSecs += secs;
-      totalMsgs += msgs;
+        totalSecs += secs;
+        totalMsgs += msgs;
 
-      if (c.chatType === "group" || c.chatType === "supergroup") groupSecs += secs;
-      if (c.chatType === "private") privSecs += secs;
-      if (c.chatType === "channel") chanSecs += secs;
+        if (c.chatType === "group" || c.chatType === "supergroup") groupSecs += secs;
+        if (c.chatType === "private") privSecs += secs;
+        if (c.chatType === "channel") chanSecs += secs;
 
-      formattedList.push({
-        chatId: c.id,
-        telegramChatId: c.telegramChatId,
-        chatType: c.chatType as any,
-        title: c.title,
-        username: c.username,
-        customLabel: c.customLabel,
-        activeSeconds: secs,
-        formattedDuration: formatDuration(secs),
-        messageCount: msgs,
-        replyCount: reps,
-        percentageOfActivity: 0,
+        formattedList.push({
+          chatId: c.id,
+          telegramChatId: c.telegramChatId,
+          chatType: c.chatType as any,
+          title: c.title,
+          username: c.username,
+          customLabel: c.customLabel,
+          activeSeconds: secs,
+          formattedDuration: formatDuration(secs),
+          messageCount: msgs,
+          replyCount: reps,
+          percentageOfActivity: 0,
+        });
+      }
+
+      // Compute percentage share
+      formattedList.forEach((item) => {
+        item.percentageOfActivity = totalSecs > 0 ? Math.round((item.activeSeconds / totalSecs) * 100) : 0;
       });
-    }
 
-    // Compute percentage share
-    formattedList.forEach((item) => {
-      item.percentageOfActivity = totalSecs > 0 ? Math.round((item.activeSeconds / totalSecs) * 100) : 0;
-    });
+      const groupsCount = formattedList.filter((c) => c.chatType === "group" || c.chatType === "supergroup").length;
+      const privCount = formattedList.filter((c) => c.chatType === "private").length;
+      const chanCount = formattedList.filter((c) => c.chatType === "channel").length;
 
-    const groupsCount = formattedList.filter((c) => c.chatType === "group" || c.chatType === "supergroup").length;
-    const privCount = formattedList.filter((c) => c.chatType === "private").length;
-    const chanCount = formattedList.filter((c) => c.chatType === "channel").length;
+      const topChat = formattedList[0] || null;
+      const topPrivate = formattedList.find((c) => c.chatType === "private") || null;
+      const topGroup = formattedList.find((c) => c.chatType === "group" || c.chatType === "supergroup") || null;
 
-    const topChat = formattedList[0] || null;
-    const topPrivate = formattedList.find((c) => c.chatType === "private") || null;
-    const topGroup = formattedList.find((c) => c.chatType === "group" || c.chatType === "supergroup") || null;
+      const sumCategory = Math.max(1, groupSecs + privSecs + chanSecs);
 
-    const sumCategory = Math.max(1, groupSecs + privSecs + chanSecs);
-
-    return {
-      totalObservedSeconds: totalSecs,
-      formattedTotalDuration: formatDuration(totalSecs),
-      totalMessagesSent: totalMsgs,
-      activeGroupsCount: groupsCount,
-      activePrivateChatsCount: privCount,
-      activeChannelsCount: chanCount,
-      topChat,
-      topPrivateChat: topPrivate,
-      topGroupChat: topGroup,
-      chatBreakdown: {
-        groupsPercent: Math.round((groupSecs / sumCategory) * 100),
-        privateChatsPercent: Math.round((privSecs / sumCategory) * 100),
-        channelsPercent: Math.round((chanSecs / sumCategory) * 100),
-      },
-      chats: formattedList,
-    };
+      return {
+        totalObservedSeconds: totalSecs,
+        formattedTotalDuration: formatDuration(totalSecs),
+        totalMessagesSent: totalMsgs,
+        activeGroupsCount: groupsCount,
+        activePrivateChatsCount: privCount,
+        activeChannelsCount: chanCount,
+        topChat,
+        topPrivateChat: topPrivate,
+        topGroupChat: topGroup,
+        chatBreakdown: {
+          groupsPercent: Math.round((groupSecs / sumCategory) * 100),
+          privateChatsPercent: Math.round((privSecs / sumCategory) * 100),
+          channelsPercent: Math.round((chanSecs / sumCategory) * 100),
+        },
+        chats: formattedList,
+      };
+    }, 30);
   }
 
   /**

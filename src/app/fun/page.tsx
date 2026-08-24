@@ -18,60 +18,39 @@ import {
   Quote,
 } from "lucide-react";
 
+import { useCachedData } from "@/lib/use-cached-data";
+
 export default function FunPage() {
   const { user, hapticFeedback } = useTelegram();
-  const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [roastLevel, setRoastLevel] = useState<RoastLevel>("normal");
-  const [roastData, setRoastData] = useState<any>(null);
-  const [isRoasting, setIsRoasting] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
+  // Cached accounts list
+  const { data: accountsData } = useCachedData<{ accounts: any[] }>(
+    user ? `/api/accounts?userId=${user.id}` : null,
+    { ttlMs: 20000 }
+  );
 
-    const fetchAccounts = async () => {
-      try {
-        const res = await fetch(`/api/accounts?userId=${user.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setAccounts(data.accounts || []);
-          if (data.accounts?.length > 0) {
-            setSelectedAccountId(data.accounts[0].id);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load accounts:", err);
-      }
-    };
-
-    fetchAccounts();
-  }, [user]);
-
-  const loadRoast = async () => {
-    if (!user || !selectedAccountId) return;
-    try {
-      setIsRoasting(true);
-      hapticFeedback("medium");
-      const res = await fetch(
-        `/api/league/roast?userId=${user.id}&accountId=${selectedAccountId}&level=${roastLevel}`
-      );
-      if (res.ok) {
-        const data = await res.json();
-        setRoastData(data);
-      }
-    } catch (err) {
-      console.error("Failed to load roast:", err);
-    } finally {
-      setIsRoasting(false);
-    }
-  };
+  const accounts = accountsData?.accounts || [];
 
   useEffect(() => {
-    if (selectedAccountId) {
-      loadRoast();
+    if (accounts.length > 0 && !selectedAccountId) {
+      setSelectedAccountId(accounts[0].id);
     }
-  }, [selectedAccountId, roastLevel]);
+  }, [accounts, selectedAccountId]);
+
+  // Cached roast data per account & level
+  const roastUrl =
+    user && selectedAccountId
+      ? `/api/league/roast?userId=${user.id}&accountId=${selectedAccountId}&level=${roastLevel}`
+      : null;
+
+  const {
+    data: roastData,
+    isLoading: isRoasting,
+    revalidate: loadRoast,
+  } = useCachedData<any>(roastUrl, { ttlMs: 30000 });
 
   const copyRoast = () => {
     if (!roastData) return;

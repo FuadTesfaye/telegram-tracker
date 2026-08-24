@@ -13,7 +13,14 @@ export async function GET(req: Request) {
     }
 
     const rivalData = await LeagueService.getRivalStatus(userId, rivalAccountId);
-    return NextResponse.json({ success: true, rival: rivalData });
+    return NextResponse.json(
+      { success: true, rival: rivalData },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=10, s-maxage=20, stale-while-revalidate=60",
+        },
+      }
+    );
   } catch (err: unknown) {
     return handleApiError(err);
   }

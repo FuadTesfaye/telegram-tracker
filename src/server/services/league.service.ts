@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { userRivals, userAchievements } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { formatDuration } from "@/lib/utils";
+import { cache } from "@/lib/cache";
 
 export interface LeagueCompetitor {
   accountId: string;
@@ -134,22 +135,24 @@ export class LeagueService {
     awards: LeagueAward[];
     weeklyVictim: LeagueCompetitor | null;
   }> {
-    const accounts = await AccountRepository.listByOwner(userId);
-    const now = new Date();
-    const weekNumber = this.getWeekNumber(now);
-    const year = now.getFullYear();
+    const cacheKey = `leaderboard:${userId}:${timezone}`;
+    return cache.getOrSet(cacheKey, async () => {
+      const accounts = await AccountRepository.listByOwner(userId);
+      const now = new Date();
+      const weekNumber = this.getWeekNumber(now);
+      const year = now.getFullYear();
 
-    const sevenDaysAgoStr = this.getPastDateString(7, timezone);
-    const todayStr = this.getTodayDateString(timezone);
+      const sevenDaysAgoStr = this.getPastDateString(7, timezone);
+      const todayStr = this.getTodayDateString(timezone);
 
-    const competitorList: LeagueCompetitor[] = [];
+      const competitorList: LeagueCompetitor[] = [];
 
-    for (const acc of accounts) {
-      const dailyRows = await DailyRepository.listByRange(
-        acc.id,
-        sevenDaysAgoStr,
-        todayStr
-      );
+      for (const acc of accounts) {
+        const dailyRows = await DailyRepository.listByRange(
+          acc.id,
+          sevenDaysAgoStr,
+          todayStr
+        );
 
       let totalSeconds = 0;
       let totalSessions = 0;
@@ -235,15 +238,16 @@ export class LeagueService {
       );
     }
 
-    return {
-      weekNumber,
-      year,
-      triumvirateTitle,
-      roastOfTheWeek,
-      competitors: competitorList,
-      awards,
-      weeklyVictim,
-    };
+      return {
+        weekNumber,
+        year,
+        triumvirateTitle,
+        roastOfTheWeek,
+        competitors: competitorList,
+        awards,
+        weeklyVictim,
+      };
+    }, 30);
   }
 
   /**

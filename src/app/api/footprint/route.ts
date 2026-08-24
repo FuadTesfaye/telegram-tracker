@@ -12,7 +12,14 @@ export async function GET(req: Request) {
     }
 
     const footprint = await FootprintService.getUserFootprint(userId);
-    return NextResponse.json({ success: true, footprint });
+    return NextResponse.json(
+      { success: true, footprint },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=10, s-maxage=20, stale-while-revalidate=60",
+        },
+      }
+    );
   } catch (err: unknown) {
     return handleApiError(err);
   }

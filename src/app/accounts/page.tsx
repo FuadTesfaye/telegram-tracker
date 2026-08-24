@@ -6,36 +6,28 @@ import { useTelegram } from "@/components/telegram-provider";
 import { EmptyState } from "@/components/empty-state";
 import { Users, Plus, Pause, Play, ArrowRight, ShieldAlert, Sparkles } from "lucide-react";
 
+import { useCachedData } from "@/lib/use-cached-data";
+
 export default function AccountsPage() {
   const { user, hapticFeedback } = useTelegram();
-  const [accounts, setAccounts] = useState<any[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [usernameInput, setUsernameInput] = useState("");
   const [labelInput, setLabelInput] = useState("Other");
   const [notesInput, setNotesInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchAccounts = async () => {
-    if (!user) return;
-    try {
-      setIsLoading(true);
-      const res = await fetch(`/api/accounts?userId=${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setAccounts(data.accounts || []);
-      }
-    } catch (err) {
-      console.error("Failed to load accounts:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data: accountsData,
+    isLoading,
+    revalidate: fetchAccounts,
+    mutate,
+  } = useCachedData<{ accounts: any[] }>(
+    user ? `/api/accounts?userId=${user.id}` : null,
+    { ttlMs: 20000 }
+  );
 
-  useEffect(() => {
-    fetchAccounts();
-  }, [user]);
+  const accounts = accountsData?.accounts || [];
 
   const handleAddAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,22 +50,26 @@ export default function AccountsPage() {
       });
 
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to add account");
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || data.error || "Failed to add account");
       }
 
-      hapticFeedback("success");
+      mutate((curr) => ({
+        accounts: [...(curr?.accounts || []), data.account],
+      }), true);
+
       setUsernameInput("");
       setNotesInput("");
       setIsAddOpen(false);
-      await fetchAccounts();
+      hapticFeedback("medium");
     } catch (err: any) {
-      hapticFeedback("error");
       setErrorMsg(err.message || "Failed to add account");
+      hapticFeedback("error");
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   const toggleAccountStatus = async (id: string, currentStatus: string) => {
     try {

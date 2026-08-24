@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTelegram } from "@/components/telegram-provider";
 import { StatCard } from "@/components/stat-card";
 import { TrendBadge } from "@/components/trend-badge";
 import { EmptyState } from "@/components/empty-state";
 import { SessionTimeline } from "@/components/session-timeline";
+import { useCachedData } from "@/lib/use-cached-data";
 import { formatDuration } from "@/lib/utils";
 import type { AccountAnalyticsOverview, SessionItem } from "@/types";
 import {
@@ -18,67 +19,51 @@ import {
   ArrowRight,
   ShieldCheck,
   Zap,
+  Trophy,
+  Swords,
+  Sparkles,
+  PieChart,
 } from "lucide-react";
 
 export default function HomePage() {
   const { user, isLoading: isAuthLoading, hapticFeedback } = useTelegram();
-  const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [overview, setOverview] = useState<AccountAnalyticsOverview | null>(null);
-  const [recentSessions, setRecentSessions] = useState<SessionItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Instant SWR-cached account list
+  const {
+    data: accountsData,
+    isLoading: isAccountsLoading,
+  } = useCachedData<{ accounts: any[] }>(
+    user ? `/api/accounts?userId=${user.id}` : null,
+    { ttlMs: 20000 }
+  );
+
+  const accounts = accountsData?.accounts || [];
+
+  // Automatically select first account if not set
   useEffect(() => {
-    if (!user) return;
+    if (accounts.length > 0 && !selectedAccountId) {
+      setSelectedAccountId(accounts[0].id);
+    }
+  }, [accounts, selectedAccountId]);
 
-    const fetchAccounts = async () => {
-      try {
-        setIsLoading(true);
-        const res = await fetch(`/api/accounts?userId=${user.id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setAccounts(data.accounts || []);
-          if (data.accounts?.length > 0) {
-            setSelectedAccountId(data.accounts[0].id);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load accounts:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Instant SWR-cached overview & sessions for selected account
+  const { data: overviewData } = useCachedData<{ overview: AccountAnalyticsOverview }>(
+    selectedAccountId ? `/api/accounts/${selectedAccountId}/overview` : null,
+    { ttlMs: 15000 }
+  );
 
-    fetchAccounts();
-  }, [user]);
+  const { data: sessionsData } = useCachedData<{ sessions: SessionItem[] }>(
+    selectedAccountId ? `/api/accounts/${selectedAccountId}/sessions?limit=5` : null,
+    { ttlMs: 15000 }
+  );
 
-  useEffect(() => {
-    if (!selectedAccountId) return;
+  const overview = overviewData?.overview || null;
+  const recentSessions = sessionsData?.sessions || [];
 
-    const fetchAccountData = async () => {
-      try {
-        const [overviewRes, sessionsRes] = await Promise.all([
-          fetch(`/api/accounts/${selectedAccountId}/overview`),
-          fetch(`/api/accounts/${selectedAccountId}/sessions?limit=5`),
-        ]);
+  const isLoading = isAuthLoading || (isAccountsLoading && accounts.length === 0);
 
-        if (overviewRes.ok) {
-          const oData = await overviewRes.json();
-          setOverview(oData.overview);
-        }
-        if (sessionsRes.ok) {
-          const sData = await sessionsRes.json();
-          setRecentSessions(sData.sessions || []);
-        }
-      } catch (err) {
-        console.error("Failed to load account overview:", err);
-      }
-    };
-
-    fetchAccountData();
-  }, [selectedAccountId]);
-
-  if (isAuthLoading || isLoading) {
+  if (isLoading) {
     return (
       <div className="space-y-4 pt-2 animate-pulse">
         <div className="h-8 bg-white/[0.05] rounded-xl w-1/2" />
@@ -111,6 +96,53 @@ export default function HomePage() {
           className="p-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl shadow-sm transition-all tap-effect border border-sky-400/20"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
+        </Link>
+      </div>
+
+      {/* Quick Access Action Bar */}
+      <div className="grid grid-cols-4 gap-2">
+        <Link
+          href="/league"
+          onClick={() => hapticFeedback("light")}
+          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-amber-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
+        >
+          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <Trophy className="w-4 h-4" />
+          </div>
+          <span className="text-[11px] font-bold text-slate-200">League</span>
+        </Link>
+
+        <Link
+          href="/fun"
+          onClick={() => hapticFeedback("light")}
+          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-rose-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
+        >
+          <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <Sparkles className="w-4 h-4" />
+          </div>
+          <span className="text-[11px] font-bold text-slate-200">Roast Hub</span>
+        </Link>
+
+        <Link
+          href="/compare"
+          onClick={() => hapticFeedback("light")}
+          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
+        >
+          <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <Swords className="w-4 h-4" />
+          </div>
+          <span className="text-[11px] font-bold text-slate-200">Rival Gap</span>
+        </Link>
+
+        <Link
+          href="/my"
+          onClick={() => hapticFeedback("light")}
+          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-emerald-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
+        >
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <PieChart className="w-4 h-4" />
+          </div>
+          <span className="text-[11px] font-bold text-slate-200">Footprint</span>
         </Link>
       </div>
 
@@ -192,7 +224,7 @@ export default function HomePage() {
               value={formatDuration(
                 overview?.today.averageSessionSeconds ||
                   overview?.sevenDays.averageSessionSeconds ||
-                  0
+                0
               )}
               subtitle={`Peak: ${overview?.sevenDays.peakHour || 0}:00`}
               icon={Zap}

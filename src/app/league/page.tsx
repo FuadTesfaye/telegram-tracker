@@ -17,48 +17,37 @@ import {
   Zap,
 } from "lucide-react";
 
+import { useCachedData } from "@/lib/use-cached-data";
+
 export default function LeaguePage() {
   const { user, hapticFeedback } = useTelegram();
   const [activeTab, setActiveTab] = useState<"leaderboard" | "rival" | "awards">("leaderboard");
-  const [leaderboardData, setLeaderboardData] = useState<{
+  const [copiedRoast, setCopiedRoast] = useState(false);
+
+  const {
+    data: leaderboardData,
+    isLoading: isLeagueLoading,
+    revalidate: refetchLeague,
+  } = useCachedData<{
     weekNumber: number;
     triumvirateTitle?: string;
     roastOfTheWeek?: string;
     competitors: LeagueCompetitor[];
     awards: LeagueAward[];
     weeklyVictim: LeagueCompetitor | null;
-  } | null>(null);
-  const [rivalData, setRivalData] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [copiedRoast, setCopiedRoast] = useState(false);
+  }>(user ? `/api/league?userId=${user.id}` : null, { ttlMs: 20000 });
 
-  const fetchLeague = async () => {
-    if (!user) return;
-    try {
-      setIsLoading(true);
-      const [leagueRes, rivalRes] = await Promise.all([
-        fetch(`/api/league?userId=${user.id}`),
-        fetch(`/api/league/rival?userId=${user.id}`),
-      ]);
+  const { data: rivalResp, revalidate: refetchRival } = useCachedData<{
+    rival: any;
+  }>(user ? `/api/league/rival?userId=${user.id}` : null, { ttlMs: 20000 });
 
-      if (leagueRes.ok) {
-        const lData = await leagueRes.json();
-        setLeaderboardData(lData);
-      }
-      if (rivalRes.ok) {
-        const rData = await rivalRes.json();
-        setRivalData(rData.rival);
-      }
-    } catch (err) {
-      console.error("Failed to load league:", err);
-    } finally {
-      setIsLoading(false);
-    }
+  const rivalData = rivalResp?.rival || null;
+  const isLoading = isLeagueLoading && !leaderboardData;
+
+  const fetchLeague = () => {
+    refetchLeague();
+    refetchRival();
   };
-
-  useEffect(() => {
-    fetchLeague();
-  }, [user]);
 
   const copyRoast = (text: string) => {
     navigator.clipboard.writeText(text);

@@ -18,11 +18,25 @@ export async function GET(req: Request) {
 
     if (!userId) {
       const all = await AccountRepository.listAllActive();
-      return NextResponse.json({ accounts: all });
+      return NextResponse.json(
+        { accounts: all },
+        {
+          headers: {
+            "Cache-Control": "public, max-age=10, s-maxage=20, stale-while-revalidate=60",
+          },
+        }
+      );
     }
 
     const accounts = await AccountRepository.listByOwner(userId);
-    return NextResponse.json({ accounts });
+    return NextResponse.json(
+      { accounts },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=10, s-maxage=20, stale-while-revalidate=60",
+        },
+      }
+    );
   } catch (err: unknown) {
     return handleApiError(err);
   }

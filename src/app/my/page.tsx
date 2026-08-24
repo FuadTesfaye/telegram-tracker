@@ -17,9 +17,10 @@ import {
   Lock,
 } from "lucide-react";
 
+import { useCachedData } from "@/lib/use-cached-data";
+
 export default function MyTelegramPage() {
   const { user, hapticFeedback } = useTelegram();
-  const [footprint, setFootprint] = useState<UserFootprintOverview | null>(null);
   const [isConnectOpen, setIsConnectOpen] = useState(false);
   const [phoneInput, setPhoneInput] = useState("");
   const [codeInput, setCodeInput] = useState("");
@@ -27,29 +28,19 @@ export default function MyTelegramPage() {
   const [phoneCodeHash, setPhoneCodeHash] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   const [editingChatId, setEditingChatId] = useState<string | null>(null);
   const [customLabelInput, setCustomLabelInput] = useState("");
 
-  const loadFootprint = async () => {
-    if (!user) return;
-    try {
-      setIsLoading(true);
-      const res = await fetch(`/api/footprint?userId=${user.id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setFootprint(data.footprint);
-      }
-    } catch (err) {
-      console.error("Failed to load footprint:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const {
+    data: footprintData,
+    isLoading,
+    revalidate: loadFootprint,
+  } = useCachedData<{ footprint: UserFootprintOverview }>(
+    user ? `/api/footprint?userId=${user.id}` : null,
+    { ttlMs: 30000 }
+  );
 
-  useEffect(() => {
-    loadFootprint();
-  }, [user]);
+  const footprint = footprintData?.footprint || null;
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
