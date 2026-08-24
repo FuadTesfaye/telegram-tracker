@@ -16,39 +16,50 @@ export function BottomNav() {
   const { hapticFeedback } = useTelegram();
 
   const navItems = [
-    { href: "/", label: "Home", icon: LayoutDashboard },
-    { href: "/my", label: "My Stats", icon: User },
+    { href: "/", label: "Overview", icon: LayoutDashboard },
     { href: "/league", label: "League", icon: Trophy },
     { href: "/fun", label: "Roast", icon: Flame },
+    { href: "/my", label: "Footprint", icon: User },
     { href: "/accounts", label: "Slots", icon: Users },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/85 backdrop-blur-lg border-t border-slate-800/80 max-w-md mx-auto">
-      <div className="flex items-center justify-around h-16 px-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : pathname.startsWith(item.href);
+    <nav className="fixed bottom-3 left-3 right-3 z-50 max-w-md mx-auto">
+      <div className="glass-panel bg-[#0d111a]/90 backdrop-blur-xl border border-white/[0.09] rounded-2xl p-1.5 shadow-2xl shadow-black/80">
+        <div className="flex items-center justify-around h-13">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => hapticFeedback("light")}
-              className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${
-                isActive
-                  ? "text-blue-400 font-bold scale-105"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <Icon className={`w-5 h-5 mb-1 ${isActive ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
-              <span className="text-[10px] tracking-tight">{item.label}</span>
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => hapticFeedback("light")}
+                className={`relative flex flex-col items-center justify-center flex-1 py-1.5 rounded-xl transition-all tap-effect ${
+                  isActive
+                    ? "text-sky-400 font-semibold bg-white/[0.06]"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <Icon
+                  className={`w-5 h-5 transition-transform ${
+                    isActive ? "stroke-[2.25] scale-105" : "stroke-[1.5]"
+                  }`}
+                />
+                <span className="text-[10px] tracking-tight mt-0.5 font-medium">
+                  {item.label}
+                </span>
+                {isActive && (
+                  <span className="absolute bottom-1 w-1 h-1 rounded-full bg-sky-400" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </nav>
   );

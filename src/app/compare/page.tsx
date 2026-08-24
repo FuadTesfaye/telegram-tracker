@@ -5,7 +5,7 @@ import { useTelegram } from "@/components/telegram-provider";
 import { EmptyState } from "@/components/empty-state";
 import { formatDuration } from "@/lib/utils";
 import type { AccountAnalyticsOverview } from "@/types";
-import { GitCompare, Users, ArrowRight } from "lucide-react";
+import { GitCompare } from "lucide-react";
 
 export default function ComparePage() {
   const { user, hapticFeedback } = useTelegram();
@@ -71,12 +71,12 @@ export default function ComparePage() {
   }, [accA, accB]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-black text-slate-100 tracking-tight">
-          Compare Accounts
+        <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
+          ⚔️ Compare Accounts
         </h1>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-slate-400 font-medium">
           Side-by-side observable presence analysis
         </p>
       </div>
@@ -86,14 +86,18 @@ export default function ComparePage() {
           icon={GitCompare}
           title="Need At Least 2 Accounts"
           description="Track at least two Telegram accounts to enable side-by-side presence comparison."
+          actionText="+ Enroll Competitors"
+          onAction={() => {
+            window.location.href = "/accounts";
+          }}
         />
       ) : (
         <>
           {/* Selectors */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                Account 1
+              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                Account A
               </label>
               <select
                 value={accA}
@@ -101,7 +105,7 @@ export default function ComparePage() {
                   setAccA(e.target.value);
                   hapticFeedback("light");
                 }}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-sky-500 font-medium"
               >
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -112,8 +116,8 @@ export default function ComparePage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-slate-400 mb-1">
-                Account 2
+              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                Account B
               </label>
               <select
                 value={accB}
@@ -121,7 +125,7 @@ export default function ComparePage() {
                   setAccB(e.target.value);
                   hapticFeedback("light");
                 }}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none"
+                className="w-full px-3 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-sky-500 font-medium"
               >
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -133,16 +137,16 @@ export default function ComparePage() {
           </div>
 
           {dataA && dataB && (
-            <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm space-y-4">
+            <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm space-y-4">
               {/* Header row */}
-              <div className="grid grid-cols-3 gap-2 text-center text-xs pb-3 border-b border-slate-800">
-                <span className="font-bold text-blue-400 truncate">
+              <div className="grid grid-cols-3 gap-2 text-center text-xs pb-3 border-b border-white/[0.06]">
+                <span className="font-bold text-sky-400 truncate">
                   {dataA.account.displayName || "@" + dataA.account.username}
                 </span>
-                <span className="font-semibold text-slate-400 uppercase text-[10px]">
+                <span className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">
                   Metric
                 </span>
-                <span className="font-bold text-emerald-400 truncate">
+                <span className="font-bold text-amber-400 truncate">
                   {dataB.account.displayName || "@" + dataB.account.username}
                 </span>
               </div>
@@ -150,61 +154,61 @@ export default function ComparePage() {
               {/* Rows */}
               <div className="space-y-3 text-xs">
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-mono font-bold text-slate-100">
                     {dataA.today.formattedDuration}
                   </span>
-                  <span className="text-slate-400 text-[11px]">Today</span>
-                  <span className="font-semibold text-slate-200">
+                  <span className="text-slate-400 text-[11px] font-medium">Observed Today</span>
+                  <span className="font-mono font-bold text-slate-100">
                     {dataB.today.formattedDuration}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-mono font-bold text-slate-100">
                     {dataA.sevenDays.formattedDuration}
                   </span>
-                  <span className="text-slate-400 text-[11px]">7-Day Total</span>
-                  <span className="font-semibold text-slate-200">
+                  <span className="text-slate-400 text-[11px] font-medium">7-Day Total</span>
+                  <span className="font-mono font-bold text-slate-100">
                     {dataB.sevenDays.formattedDuration}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-mono font-bold text-slate-100">
                     {dataA.sevenDays.sessionCount}
                   </span>
-                  <span className="text-slate-400 text-[11px]">7-Day Sessions</span>
-                  <span className="font-semibold text-slate-200">
+                  <span className="text-slate-400 text-[11px] font-medium">7-Day Sessions</span>
+                  <span className="font-mono font-bold text-slate-100">
                     {dataB.sevenDays.sessionCount}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-mono font-bold text-slate-100">
                     {formatDuration(dataA.sevenDays.averageSessionSeconds)}
                   </span>
-                  <span className="text-slate-400 text-[11px]">Avg Session</span>
-                  <span className="font-semibold text-slate-200">
+                  <span className="text-slate-400 text-[11px] font-medium">Avg Session</span>
+                  <span className="font-mono font-bold text-slate-100">
                     {formatDuration(dataB.sevenDays.averageSessionSeconds)}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-mono font-bold text-slate-100">
                     {dataA.sevenDays.peakHour}:00
                   </span>
-                  <span className="text-slate-400 text-[11px]">Peak Hour</span>
-                  <span className="font-semibold text-slate-200">
+                  <span className="text-slate-400 text-[11px] font-medium">Peak Hour</span>
+                  <span className="font-mono font-bold text-slate-100">
                     {dataB.sevenDays.peakHour}:00
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-semibold text-slate-200">
+                  <span className="font-mono font-bold text-slate-100">
                     {dataA.streaks.currentStreakDays}d
                   </span>
-                  <span className="text-slate-400 text-[11px]">Active Streak</span>
-                  <span className="font-semibold text-slate-200">
+                  <span className="text-slate-400 text-[11px] font-medium">Active Streak</span>
+                  <span className="font-mono font-bold text-slate-100">
                     {dataB.streaks.currentStreakDays}d
                   </span>
                 </div>

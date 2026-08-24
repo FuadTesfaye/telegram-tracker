@@ -14,8 +14,6 @@ import {
   Trophy,
   Flame,
   Zap,
-  TrendingUp,
-  Clock,
   ShieldCheck,
 } from "lucide-react";
 
@@ -78,13 +76,13 @@ export default function AnalyticsPage() {
   }, [selectedAccountId]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-black text-slate-100 tracking-tight">
-          Activity Intelligence
+        <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
+          📊 Activity Intelligence
         </h1>
-        <p className="text-xs text-slate-400">
-          Statistical presence patterns, quiet hours & records
+        <p className="text-xs text-slate-400 font-medium">
+          Presence distribution, quiet windows & all-time telemetry records
         </p>
       </div>
 
@@ -93,10 +91,14 @@ export default function AnalyticsPage() {
           icon={BarChart3}
           title="No Accounts Tracked"
           description="Add an account to begin computing presence patterns and heatmaps."
+          actionText="+ Enroll Competitor"
+          onAction={() => {
+            window.location.href = "/accounts";
+          }}
         />
       ) : (
         <>
-          {/* Account Selector */}
+          {/* Account Selector Horizontal Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {accounts.map((acc) => {
               const isSelected = selectedAccountId === acc.id;
@@ -107,10 +109,10 @@ export default function AnalyticsPage() {
                     setSelectedAccountId(acc.id);
                     hapticFeedback("light");
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
                     isSelected
-                      ? "bg-blue-600/20 text-blue-400 border-blue-500/60"
-                      : "bg-slate-900/60 text-slate-400 border-slate-800"
+                      ? "bg-sky-500/15 text-sky-300 border-sky-500/40 shadow-sm"
+                      : "bg-[#111622]/80 text-slate-400 border-white/[0.06] hover:text-slate-200"
                   }`}
                 >
                   {acc.displayName || "@" + acc.username}
@@ -132,17 +134,17 @@ export default function AnalyticsPage() {
               value={`${overview?.quietHours.startHour.toString().padStart(2, "0")}:00 - ${overview?.quietHours.endHour.toString().padStart(2, "0")}:00`}
               subtitle="Consistently lowest activity"
               icon={Moon}
-              iconColor="text-indigo-400"
+              iconColor="text-sky-400"
             />
             <StatCard
               title="Longest Session"
               value={formatDuration(overview?.personalBests.longestSessionSeconds || 0)}
-              subtitle="Personal best"
+              subtitle="Personal record"
               icon={Trophy}
               iconColor="text-amber-400"
             />
             <StatCard
-              title="Peak Day Activity"
+              title="Peak Day Total"
               value={formatDuration(overview?.personalBests.highestDailyActivitySeconds || 0)}
               subtitle={overview?.personalBests.highestDailyDate || "Recent"}
               icon={Zap}
@@ -158,17 +160,17 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Period Comparisons */}
-          <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm space-y-3">
-            <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+          <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm space-y-3">
+            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
               Period Trend Analysis
             </h4>
 
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-black/30 border border-white/[0.05]">
               <div>
-                <div className="text-xs font-semibold text-slate-200">
+                <div className="text-xs font-bold text-slate-200">
                   7-Day Rolling Trend
                 </div>
-                <div className="text-[10px] text-slate-400">
+                <div className="text-[10px] text-slate-400 font-medium">
                   Compared with previous 7-day period
                 </div>
               </div>
@@ -180,27 +182,26 @@ export default function AnalyticsPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-black/30 border border-white/[0.05]">
               <div>
-                <div className="text-xs font-semibold text-slate-200">
+                <div className="text-xs font-bold text-slate-200">
                   30-Day Total Presence
                 </div>
-                <div className="text-[10px] text-slate-400">
+                <div className="text-[10px] text-slate-400 font-medium">
                   Coverage: {overview?.thirtyDays.coverageStatus}
                 </div>
               </div>
-              <div className="text-xs font-bold text-blue-400">
+              <div className="text-xs font-mono font-black text-sky-400 tabular-nums">
                 {overview?.thirtyDays.formattedDuration}
               </div>
             </div>
           </div>
 
           {/* Data Semantics Card */}
-          <div className="p-3 bg-slate-900/40 border border-slate-800/60 rounded-2xl flex items-center gap-2.5 text-[11px] text-slate-400">
+          <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl flex items-center gap-2.5 text-[11px] text-slate-400">
             <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
             <span>
-              All metrics are calculated deterministically from recorded presence
-              sessions. Telemetr does not make psychological or behavioral inferences.
+              All metrics are calculated deterministically from observable presence sessions. Telemetr does not make arbitrary assumptions.
             </span>
           </div>
         </>

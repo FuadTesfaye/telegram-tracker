@@ -80,37 +80,37 @@ export default function HomePage() {
 
   if (isAuthLoading || isLoading) {
     return (
-      <div className="space-y-4 pt-4 animate-pulse">
-        <div className="h-8 bg-slate-900 rounded-xl w-1/2" />
+      <div className="space-y-4 pt-2 animate-pulse">
+        <div className="h-8 bg-white/[0.05] rounded-xl w-1/2" />
         <div className="grid grid-cols-2 gap-3">
-          <div className="h-24 bg-slate-900 rounded-2xl" />
-          <div className="h-24 bg-slate-900 rounded-2xl" />
+          <div className="h-28 bg-white/[0.05] rounded-2xl" />
+          <div className="h-28 bg-white/[0.05] rounded-2xl" />
         </div>
-        <div className="h-44 bg-slate-900 rounded-2xl" />
+        <div className="h-44 bg-white/[0.05] rounded-2xl" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
             Telegram League
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-blue-950/80 text-blue-400 border border-blue-800/60 rounded-full">
+            <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-lg">
               {user?.plan || "free"}
             </span>
           </h1>
-          <p className="text-xs text-amber-400 font-semibold">Track. Compete. Get Roasted.</p>
+          <p className="text-xs text-slate-400 font-medium">Activity Analytics & Weekly Championship</p>
         </div>
 
         <Link
           href="/accounts"
           onClick={() => hapticFeedback("light")}
-          className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-sm transition-all"
+          className="p-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl shadow-sm transition-all tap-effect border border-sky-400/20"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 stroke-[2.5]" />
         </Link>
       </div>
 
@@ -118,15 +118,15 @@ export default function HomePage() {
         <EmptyState
           icon={Users}
           title="No Tracked Accounts Yet"
-          description="Start observing a Telegram account to begin accumulating historical presence insights."
-          actionText="+ Track First Account"
+          description="Add up to 3 Telegram accounts to begin monitoring observed presence and participate in weekly leagues."
+          actionText="+ Enroll First Account"
           onAction={() => {
             window.location.href = "/accounts";
           }}
         />
       ) : (
         <>
-          {/* Account Selector Pills */}
+          {/* Account Selector Horizontal Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {accounts.map((acc) => {
               const isSelected = selectedAccountId === acc.id;
@@ -138,15 +138,15 @@ export default function HomePage() {
                     setSelectedAccountId(acc.id);
                     hapticFeedback("light");
                   }}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
                     isSelected
-                      ? "bg-blue-600/20 text-blue-400 border-blue-500/60"
-                      : "bg-slate-900/60 text-slate-400 border-slate-800 hover:text-slate-200"
+                      ? "bg-sky-500/15 text-sky-300 border-sky-500/40 shadow-sm"
+                      : "bg-[#111622]/80 text-slate-400 border-white/[0.06] hover:text-slate-200"
                   }`}
                 >
                   <span
                     className={`w-2 h-2 rounded-full ${
-                      isOnline ? "bg-emerald-400 animate-pulse" : "bg-slate-500"
+                      isOnline ? "bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50" : "bg-slate-600"
                     }`}
                   />
                   <span>{acc.displayName || "@" + acc.username}</span>
@@ -162,7 +162,7 @@ export default function HomePage() {
               value={overview?.today.formattedDuration || "0m"}
               subtitle={`${overview?.today.sessionCount || 0} active sessions`}
               icon={Clock}
-              iconColor="text-blue-400"
+              iconColor="text-sky-400"
             />
             <StatCard
               title="7-Day Streak"
@@ -174,7 +174,7 @@ export default function HomePage() {
             <StatCard
               title="7-Day Total"
               value={overview?.sevenDays.formattedDuration || "0m"}
-              subtitle="Observed presence"
+              subtitle="Observed screen time"
               icon={Activity}
               iconColor="text-emerald-400"
               extra={
@@ -196,19 +196,19 @@ export default function HomePage() {
               )}
               subtitle={`Peak: ${overview?.sevenDays.peakHour || 0}:00`}
               icon={Zap}
-              iconColor="text-purple-400"
+              iconColor="text-cyan-400"
             />
           </div>
 
-          {/* Anomaly Alerts Banner if present */}
+          {/* Anomaly Alert Banner if present */}
           {overview?.anomalies && overview.anomalies.length > 0 && (
-            <div className="p-3 bg-amber-950/40 border border-amber-800/60 rounded-2xl flex items-start gap-2.5 text-xs text-amber-200">
+            <div className="p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-start gap-2.5 text-xs text-amber-200">
               <span className="text-amber-400 text-sm">⚠️</span>
               <div>
                 <strong className="font-semibold block text-amber-300">
                   Unusual Activity Detected
                 </strong>
-                <p className="text-[11px] text-amber-300/80 mt-0.5">
+                <p className="text-[11px] text-amber-300/80 mt-0.5 font-medium">
                   {overview.anomalies[0].description}
                 </p>
               </div>
@@ -216,17 +216,17 @@ export default function HomePage() {
           )}
 
           {/* Recent Sessions */}
-          <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
+          <div className="glass-panel bg-[#10141e]/85 border border-white/[0.08] rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                 Recent Sessions
               </h4>
               <Link
                 href="/history"
                 onClick={() => hapticFeedback("light")}
-                className="text-[11px] font-medium text-blue-400 flex items-center gap-1 hover:underline"
+                className="text-[11px] font-semibold text-sky-400 flex items-center gap-1 hover:text-sky-300 transition-colors"
               >
-                Full History <ArrowRight className="w-3 h-3" />
+                Full History <ArrowRight className="w-3 h-3 stroke-[2.5]" />
               </Link>
             </div>
 
@@ -235,12 +235,11 @@ export default function HomePage() {
         </>
       )}
 
-      {/* Honest Data Ethics Banner */}
-      <div className="p-3 bg-slate-900/40 border border-slate-800/60 rounded-2xl flex items-center gap-2.5 text-[11px] text-slate-400">
+      {/* Honest Data Privacy Note */}
+      <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl flex items-center gap-2.5 text-[11px] text-slate-400">
         <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
         <span>
-          Activity is based on observable Telegram presence. Telemetr does not
-          access private messages, contacts, or device screen time.
+          Activity is based on observable Telegram presence. Telemetr does not access private messages, chats, or personal device telemetry.
         </span>
       </div>
     </div>

@@ -7,15 +7,15 @@ import type { RoastLevel } from "@/server/services/roast-engine.service";
 import {
   Flame,
   Medal,
-  Sparkles,
   Share2,
-  Crown,
+  Check,
   CheckCircle2,
   Lock,
   RefreshCw,
   Skull,
   Smile,
   Zap,
+  Quote,
 } from "lucide-react";
 
 export default function FunPage() {
@@ -52,7 +52,7 @@ export default function FunPage() {
     if (!user || !selectedAccountId) return;
     try {
       setIsRoasting(true);
-      hapticFeedback("heavy");
+      hapticFeedback("medium");
       const res = await fetch(
         `/api/league/roast?userId=${user.id}&accountId=${selectedAccountId}&level=${roastLevel}`
       );
@@ -99,7 +99,7 @@ export default function FunPage() {
     },
     {
       id: "blue_check",
-      title: "Blue Check Warrior",
+      title: "Notification Warrior",
       description: "Recorded 50+ presence sessions in a single week",
       icon: "⚔️",
       unlocked: true,
@@ -121,13 +121,13 @@ export default function FunPage() {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div>
         <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-1.5">
           🔥 Roast Me & Achievements
         </h1>
-        <p className="text-xs text-slate-400">
-          Statistics-driven roasts and competitive milestones
+        <p className="text-xs text-slate-400 font-medium">
+          Telemetry-backed satirical verdicts and competitive milestones
         </p>
       </div>
 
@@ -135,11 +135,11 @@ export default function FunPage() {
         <EmptyState
           icon={Flame}
           title="No Accounts to Roast"
-          description="Enroll an account to generate custom statistics-backed roasts."
+          description="Enroll an account to generate custom telemetry-backed roasts."
         />
       ) : (
         <>
-          {/* Account Selector */}
+          {/* Account Selector Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {accounts.map((acc) => {
               const isSelected = selectedAccountId === acc.id;
@@ -150,10 +150,10 @@ export default function FunPage() {
                     setSelectedAccountId(acc.id);
                     hapticFeedback("light");
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
                     isSelected
-                      ? "bg-rose-600/20 text-rose-400 border-rose-500/60"
-                      : "bg-slate-900/60 text-slate-400 border-slate-800"
+                      ? "bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-sm"
+                      : "bg-[#111622]/80 text-slate-400 border-white/[0.06] hover:text-slate-200"
                   }`}
                 >
                   {acc.displayName || "@" + acc.username}
@@ -162,16 +162,16 @@ export default function FunPage() {
             })}
           </div>
 
-          {/* Roast Level Selector */}
-          <div className="bg-slate-900/70 border border-slate-800/80 p-1 rounded-xl flex items-center justify-between text-xs font-bold">
+          {/* 4-Tier Roast Level Segmented Switcher */}
+          <div className="bg-[#10141e] border border-white/[0.08] p-1 rounded-xl flex items-center justify-between text-xs font-bold shadow-inner">
             <button
               onClick={() => {
                 setRoastLevel("friendly");
                 hapticFeedback("light");
               }}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 tap-effect ${
                 roastLevel === "friendly"
-                  ? "bg-emerald-600 text-white shadow-sm"
+                  ? "bg-emerald-500/20 text-emerald-300 font-black border border-emerald-500/30"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -182,22 +182,22 @@ export default function FunPage() {
                 setRoastLevel("normal");
                 hapticFeedback("light");
               }}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 tap-effect ${
                 roastLevel === "normal"
-                  ? "bg-amber-600 text-white shadow-sm"
+                  ? "bg-amber-500/20 text-amber-300 font-black border border-amber-500/30"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Flame className="w-3.5 h-3.5" /> Normal
+              <Flame className="w-3.5 h-3.5" /> Spicy
             </button>
             <button
               onClick={() => {
                 setRoastLevel("brutal");
                 hapticFeedback("light");
               }}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 tap-effect ${
                 roastLevel === "brutal"
-                  ? "bg-rose-600 text-white shadow-sm"
+                  ? "bg-rose-500/20 text-rose-300 font-black border border-rose-500/30"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -208,9 +208,9 @@ export default function FunPage() {
                 setRoastLevel("nuclear");
                 hapticFeedback("heavy");
               }}
-              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 tap-effect ${
                 roastLevel === "nuclear"
-                  ? "bg-purple-600 text-white shadow-sm"
+                  ? "bg-red-600/30 text-red-300 font-black border border-red-500/40"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -218,57 +218,62 @@ export default function FunPage() {
             </button>
           </div>
 
-          {/* Roast Card */}
+          {/* Clean Telemetry Roast Card */}
           {roastData && (
-            <div className="bg-gradient-to-b from-rose-950/40 to-slate-900/90 border border-rose-800/60 rounded-3xl p-5 shadow-lg space-y-4">
+            <div className="glass-panel bg-[#111622]/90 border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold tracking-wider uppercase text-rose-400 bg-rose-950/80 px-2.5 py-1 rounded-full border border-rose-800/60 flex items-center gap-1">
-                  <Flame className="w-3 h-3" /> {roastData.headline}
+                <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20 flex items-center gap-1.5">
+                  <Flame className="w-3 h-3 fill-amber-400" /> {roastData.headline}
                 </span>
 
                 <button
                   onClick={loadRoast}
                   disabled={isRoasting}
-                  className="p-1.5 text-slate-400 hover:text-slate-200"
+                  className="p-1.5 text-slate-400 hover:text-white transition-colors tap-effect"
                 >
-                  <RefreshCw className={`w-4 h-4 ${isRoasting ? "animate-spin" : ""}`} />
+                  <RefreshCw className={`w-4 h-4 ${isRoasting ? "animate-spin text-sky-400" : ""}`} />
                 </button>
               </div>
 
               <div>
-                <div className="text-sm font-black text-slate-100 mb-1">
+                <div className="text-base font-black text-slate-100 tracking-tight">
                   {roastData.target.displayName}
                 </div>
-                <div className="text-xs text-amber-300 font-semibold">
-                  {roastData.target.title} • {roastData.target.formattedDuration} observed
+                <div className="text-xs text-sky-400 font-semibold mt-0.5 flex items-center gap-2">
+                  <span>{roastData.target.title}</span>
+                  <span>•</span>
+                  <span className="font-mono tabular-nums text-slate-300">{roastData.target.formattedDuration} observed</span>
                 </div>
               </div>
 
-              <blockquote className="text-sm italic font-serif text-slate-200 leading-relaxed border-l-2 border-rose-500 pl-3">
-                "{roastData.roastText || roastData.roast}"
-              </blockquote>
+              <div className="p-4 bg-black/40 border border-white/[0.06] rounded-2xl relative">
+                <Quote className="w-5 h-5 text-slate-600 mb-1 opacity-50" />
+                <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                  {roastData.roastText || roastData.roast}
+                </p>
+              </div>
 
-              <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-2xl text-xs font-semibold text-rose-300">
+              <div className="p-3 bg-white/[0.03] border border-white/[0.05] rounded-xl text-xs font-semibold text-amber-300/90 text-center">
                 {roastData.verdict}
               </div>
 
               <button
                 onClick={copyRoast}
-                className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                className="w-full py-3 bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-2 tap-effect"
               >
-                <Share2 className="w-3.5 h-3.5" />
-                {copied ? "Copied to Clipboard! 🔥" : "Share This Roast"}
+                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-slate-300" />}
+                <span>{copied ? "Copied to Clipboard! 🔥" : "Share This Roast"}</span>
               </button>
             </div>
           )}
 
-          {/* League Promotion Tiers */}
-          <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm space-y-3">
-            <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+          {/* Promotion Tiers */}
+          <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm space-y-3">
+            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
               🏆 League Promotion Tiers
             </h4>
 
-            <div className="grid grid-cols-5 gap-1 text-center">
+            <div className="grid grid-cols-5 gap-1.5 text-center">
               {[
                 { name: "Bronze", icon: "🥉", hours: "< 10h" },
                 { name: "Silver", icon: "🥈", hours: "10-20h" },
@@ -278,21 +283,21 @@ export default function FunPage() {
               ].map((tier) => (
                 <div
                   key={tier.name}
-                  className="p-2 rounded-xl bg-slate-950/60 border border-slate-800 flex flex-col items-center"
+                  className="p-2.5 rounded-xl bg-black/30 border border-white/[0.05] flex flex-col items-center"
                 >
-                  <span className="text-lg">{tier.icon}</span>
-                  <span className="text-[10px] font-bold text-slate-200 mt-0.5">
+                  <span className="text-base">{tier.icon}</span>
+                  <span className="text-[10px] font-bold text-slate-200 mt-1">
                     {tier.name}
                   </span>
-                  <span className="text-[8px] text-slate-400">{tier.hours}</span>
+                  <span className="text-[9px] font-mono text-slate-400">{tier.hours}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Achievements */}
-          <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm space-y-2.5">
-            <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">
+          <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm space-y-2.5">
+            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider mb-1">
               🏅 Competitive Achievements
             </h4>
 
@@ -300,14 +305,14 @@ export default function FunPage() {
               {achievements.map((ach) => (
                 <div
                   key={ach.id}
-                  className={`p-3 rounded-xl border flex items-center justify-between transition-all ${
+                  className={`p-3.5 rounded-xl border flex items-center justify-between transition-all ${
                     ach.unlocked
-                      ? "bg-slate-950/60 border-slate-800"
-                      : "bg-slate-950/30 border-slate-900 opacity-50"
+                      ? "bg-black/30 border-white/[0.06]"
+                      : "bg-black/15 border-white/[0.03] opacity-40"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-xl p-1.5 rounded-lg bg-slate-900">
+                    <span className="text-xl p-2 rounded-xl bg-white/[0.04] border border-white/[0.05]">
                       {ach.icon}
                     </span>
                     <div>
@@ -319,7 +324,7 @@ export default function FunPage() {
                           <Lock className="w-3 h-3 text-slate-500" />
                         )}
                       </div>
-                      <div className="text-[10px] text-slate-400">
+                      <div className="text-[11px] text-slate-400 font-medium">
                         {ach.description}
                       </div>
                     </div>

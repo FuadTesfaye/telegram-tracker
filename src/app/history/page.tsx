@@ -6,7 +6,7 @@ import { ActivityCalendar } from "@/components/activity-calendar";
 import { SessionTimeline } from "@/components/session-timeline";
 import { EmptyState } from "@/components/empty-state";
 import type { DailyActivityPoint, SessionItem } from "@/types";
-import { Calendar as CalendarIcon, Clock, Shield } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 
 export default function HistoryPage() {
   const { user, hapticFeedback } = useTelegram();
@@ -75,13 +75,13 @@ export default function HistoryPage() {
   }, [selectedAccountId, daysRange]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-black text-slate-100 tracking-tight">
-          Activity History
+        <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
+          📅 Activity History
         </h1>
-        <p className="text-xs text-slate-400">
-          Calendar overview & timeline of recorded presence
+        <p className="text-xs text-slate-400 font-medium">
+          Calendar presence log & timeline of recorded sessions
         </p>
       </div>
 
@@ -90,10 +90,14 @@ export default function HistoryPage() {
           icon={CalendarIcon}
           title="No Tracked Accounts"
           description="Add an account to view its calendar activity history."
+          actionText="+ Enroll Account"
+          onAction={() => {
+            window.location.href = "/accounts";
+          }}
         />
       ) : (
         <>
-          {/* Account Selector */}
+          {/* Account Selector Horizontal Pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
             {accounts.map((acc) => {
               const isSelected = selectedAccountId === acc.id;
@@ -104,10 +108,10 @@ export default function HistoryPage() {
                     setSelectedAccountId(acc.id);
                     hapticFeedback("light");
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
                     isSelected
-                      ? "bg-blue-600/20 text-blue-400 border-blue-500/60"
-                      : "bg-slate-900/60 text-slate-400 border-slate-800"
+                      ? "bg-sky-500/15 text-sky-300 border-sky-500/40 shadow-sm"
+                      : "bg-[#111622]/80 text-slate-400 border-white/[0.06] hover:text-slate-200"
                   }`}
                 >
                   {acc.displayName || "@" + acc.username}
@@ -117,7 +121,7 @@ export default function HistoryPage() {
           </div>
 
           {/* Time Range Selector */}
-          <div className="flex items-center justify-between bg-slate-900/60 border border-slate-800/80 p-1 rounded-xl">
+          <div className="flex items-center justify-between bg-[#10141e] border border-white/[0.08] p-1 rounded-xl shadow-inner">
             {[7, 14, 30, 90].map((d) => (
               <button
                 key={d}
@@ -125,13 +129,13 @@ export default function HistoryPage() {
                   setDaysRange(d);
                   hapticFeedback("light");
                 }}
-                className={`flex-1 py-1 text-xs font-semibold rounded-lg transition-all ${
+                className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg transition-all tap-effect ${
                   daysRange === d
-                    ? "bg-blue-600 text-white shadow-sm"
+                    ? "bg-white/[0.1] text-white shadow-sm font-black"
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                {d} Days
+                {d}D
               </button>
             ))}
           </div>
@@ -140,9 +144,9 @@ export default function HistoryPage() {
           <ActivityCalendar days={calendarDays} />
 
           {/* Recorded Sessions Timeline */}
-          <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
+          <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                 Recorded Sessions ({sessions.length})
               </h4>
             </div>

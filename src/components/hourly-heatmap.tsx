@@ -22,26 +22,26 @@ export function HourlyHeatmap({
   const getIntensityClass = (intensity: number) => {
     switch (intensity) {
       case 4:
-        return "bg-blue-500 shadow-sm shadow-blue-500/50";
+        return "bg-sky-400 text-slate-950 font-black shadow-sm shadow-sky-400/30";
       case 3:
-        return "bg-blue-600";
+        return "bg-sky-500 text-slate-950 font-bold";
       case 2:
-        return "bg-blue-800";
+        return "bg-sky-700 text-sky-100 font-medium";
       case 1:
-        return "bg-blue-950/80 border border-blue-800/40";
+        return "bg-sky-950/90 text-sky-300 border border-sky-800/40";
       default:
-        return "bg-slate-900/80 border border-slate-800/40";
+        return "bg-black/40 border border-white/[0.04] text-slate-500";
     }
   };
 
   return (
-    <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
+    <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+        <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
           {title}
         </h4>
         {peakHour !== undefined && (
-          <span className="text-[11px] font-medium text-blue-400">
+          <span className="text-[11px] font-mono font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-md">
             Peak: {peakHour.toString().padStart(2, "0")}:00
           </span>
         )}
@@ -54,11 +54,11 @@ export function HourlyHeatmap({
             <button
               key={item.hour}
               onClick={() => setSelectedHour(item)}
-              className={`h-9 rounded-lg flex flex-col items-center justify-center transition-all ${getIntensityClass(
+              className={`h-9 rounded-lg flex flex-col items-center justify-center transition-all tap-effect ${getIntensityClass(
                 item.intensity
               )} ${isSelected ? "ring-2 ring-white scale-105" : "hover:opacity-90"}`}
             >
-              <span className="text-[10px] font-mono text-slate-300">
+              <span className="text-[10px] font-mono font-bold">
                 {item.hour.toString().padStart(2, "0")}
               </span>
             </button>
@@ -67,7 +67,7 @@ export function HourlyHeatmap({
       </div>
 
       {selectedHour && (
-        <div className="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-300">
+        <div className="mt-3 pt-3 border-t border-white/[0.06] bg-black/40 rounded-xl p-3 flex items-center justify-between text-xs text-slate-200">
           <span>
             Hour:{" "}
             <strong className="text-slate-100 font-mono">
@@ -77,22 +77,22 @@ export function HourlyHeatmap({
           </span>
           <span>
             Observed:{" "}
-            <strong className="text-blue-400">
+            <strong className="text-sky-400 font-mono tabular-nums">
               {formatDuration(selectedHour.activeSeconds)}
             </strong>{" "}
-            ({selectedHour.sessionCount} sessions)
+            <span className="text-slate-400">({selectedHour.sessionCount} sessions)</span>
           </span>
         </div>
       )}
 
-      <div className="flex items-center justify-end gap-1.5 mt-3 pt-2 text-[10px] text-slate-400">
-        <span>Less</span>
-        <div className="w-2.5 h-2.5 rounded-sm bg-slate-900 border border-slate-800" />
-        <div className="w-2.5 h-2.5 rounded-sm bg-blue-950 border border-blue-800" />
-        <div className="w-2.5 h-2.5 rounded-sm bg-blue-800" />
-        <div className="w-2.5 h-2.5 rounded-sm bg-blue-600" />
-        <div className="w-2.5 h-2.5 rounded-sm bg-blue-500" />
-        <span>More</span>
+      <div className="flex items-center justify-end gap-1.5 mt-3 pt-2 text-[10px] text-slate-400 font-medium font-mono">
+        <span>Low</span>
+        <div className="w-2.5 h-2.5 rounded-sm bg-black/40 border border-white/[0.05]" />
+        <div className="w-2.5 h-2.5 rounded-sm bg-sky-950 border border-sky-800/50" />
+        <div className="w-2.5 h-2.5 rounded-sm bg-sky-700" />
+        <div className="w-2.5 h-2.5 rounded-sm bg-sky-500" />
+        <div className="w-2.5 h-2.5 rounded-sm bg-sky-400" />
+        <span>Peak</span>
       </div>
     </div>
   );
