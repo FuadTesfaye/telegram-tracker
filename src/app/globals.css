@@ -3,31 +3,31 @@
 @tailwind utilities;
 
 :root {
-  --background: #090b10;
-  --foreground: #f1f5f9;
-  --card: #10141e;
-  --card-foreground: #f8fafc;
-  --popover: #10141e;
-  --popover-foreground: #f8fafc;
+  --background: #090a0f;
+  --foreground: #f4f4f5;
+  --card: #11141c;
+  --card-foreground: #fafafa;
+  --popover: #11141c;
+  --popover-foreground: #fafafa;
   --primary: #0284c7;
   --primary-foreground: #ffffff;
-  --secondary: #182030;
-  --secondary-foreground: #e2e8f0;
-  --muted: #131926;
-  --muted-foreground: #94a3b8;
+  --secondary: #181c26;
+  --secondary-foreground: #e4e4e7;
+  --muted: #141722;
+  --muted-foreground: #71717a;
   --accent: #0ea5e9;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.08);
-  --ring: #0ea5e9;
-  --radius: 1rem;
+  --ring: #0284c7;
+  --radius: 0.75rem;
 }
 
 body {
-  background-color: #090b10;
-  color: #f1f5f9;
+  background-color: #090a0f;
+  color: #f4f4f5;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
   -webkit-user-select: none;
@@ -36,54 +36,50 @@ body {
   overflow-x: hidden;
 }
 
-/* Tactile Micro-Interactions */
+/* Micro-Interactions */
 button:active {
-  transform: scale(0.98);
+  transform: scale(0.985);
 }
 
 .tap-effect {
-  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.15s ease;
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.12s ease;
 }
 .tap-effect:active {
-  transform: scale(0.97);
-  opacity: 0.9;
+  transform: scale(0.98);
+  opacity: 0.92;
 }
 
-/* Glass & Card Surfaces */
+/* Enterprise Surface Panels - Zero Neon, Flat Crisp Borders */
 .glass-panel {
-  background: rgba(16, 20, 30, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #10131b;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 4px 20px -2px rgba(0, 0, 0, 0.5);
 }
 
 .glass-card {
-  background: rgba(19, 25, 38, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #11151f;
   border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
+/* Crisp Clean Badges */
 .gold-badge {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(180, 83, 9, 0.1) 100%);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  color: #fbbf24;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  color: #facc15;
 }
 
 .silver-badge {
-  background: linear-gradient(135deg, rgba(148, 163, 184, 0.15) 0%, rgba(71, 85, 105, 0.1) 100%);
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.25);
   color: #cbd5e1;
 }
 
 .bronze-badge {
-  background: linear-gradient(135deg, rgba(217, 119, 6, 0.15) 0%, rgba(146, 64, 14, 0.1) 100%);
-  border: 1px solid rgba(217, 119, 6, 0.3);
-  color: #f59e0b;
+  background: rgba(217, 119, 6, 0.1);
+  border: 1px solid rgba(217, 119, 6, 0.25);
+  color: #fb923c;
 }
 
-/* Custom minimal scrollbar */
+/* Minimal scrollbar */
 ::-webkit-scrollbar {
   width: 3px;
   height: 3px;
@@ -92,11 +88,11 @@ button:active {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Hide scrollbars for pill selectors */

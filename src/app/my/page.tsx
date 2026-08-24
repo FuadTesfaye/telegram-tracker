@@ -146,7 +146,7 @@ export default function MyTelegramPage() {
             setIsConnectOpen(true);
             hapticFeedback("light");
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all tap-effect border border-sky-400/20"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl transition-colors tap-effect border border-sky-400/20"
         >
           <Smartphone className="w-3.5 h-3.5" /> Connect MTProto
         </button>
@@ -154,9 +154,9 @@ export default function MyTelegramPage() {
 
       {/* Connect Account Modal */}
       {isConnectOpen && (
-        <div className="glass-panel bg-[#10141e]/95 border border-sky-500/30 rounded-2xl p-4 shadow-xl space-y-3 animate-in fade-in">
+        <div className="bg-[#11151f] border border-sky-500/30 rounded-xl p-4 space-y-3 animate-in fade-in">
           <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-            <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wider flex items-center gap-1.5">
               <Lock className="w-3.5 h-3.5 text-sky-400" /> Connect MTProto Session
             </h3>
             <button
@@ -164,19 +164,19 @@ export default function MyTelegramPage() {
                 setIsConnectOpen(false);
                 setPhoneCodeHash(null);
               }}
-              className="text-xs text-slate-400 hover:text-slate-200 tap-effect"
+              className="text-xs text-zinc-400 hover:text-zinc-200 tap-effect"
             >
               Cancel
             </button>
           </div>
 
-          <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
+          <p className="text-[11px] text-zinc-400 leading-relaxed font-medium">
             Authorize your Telegram session to unlock personal message frequencies,
             community breakdowns, and private conversation footprints.
           </p>
 
           {errorMsg && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs text-rose-300 font-medium">
+            <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-300 font-medium">
               {errorMsg}
             </div>
           )}
@@ -184,7 +184,7 @@ export default function MyTelegramPage() {
           {!phoneCodeHash ? (
             <form onSubmit={handleSendCode} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                   Phone Number (International Format)
                 </label>
                 <input
@@ -192,7 +192,7 @@ export default function MyTelegramPage() {
                   placeholder="+1234567890"
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-sky-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-sky-500 font-medium"
                   required
                 />
               </div>
@@ -200,7 +200,7 @@ export default function MyTelegramPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-black rounded-xl shadow-sm transition-all tap-effect"
+                className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-colors tap-effect"
               >
                 {isSubmitting ? "Sending Code via Telegram..." : "Send Verification Code"}
               </button>
