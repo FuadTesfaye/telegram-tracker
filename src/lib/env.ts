@@ -11,7 +11,12 @@ const envSchema = z.object({
   TELEGRAM_API_ID: z.string().optional().default(""),
   TELEGRAM_API_HASH: z.string().optional().default(""),
   SESSION_ENCRYPTION_KEY: z.string().default("telemetr-32-byte-secret-encryption-key-pass!"),
-  NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: z
+    .string()
+    .default(
+      process.env.NEXT_PUBLIC_APP_URL ||
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://telegram-tracker-alpha.vercel.app")
+    ),
   TELEGRAM_WEBHOOK_SECRET: z.string().default("telemetr_webhook_secret_key"),
   CRON_SECRET: z.string().default("telemetr_cron_secret_key"),
   PORT: z.coerce.number().default(3000),
