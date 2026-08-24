@@ -7,6 +7,18 @@ export const fetchCache = "force-no-store";
 
 const bot = getTelegramBot();
 
+let isInitialized = false;
+async function ensureBotInit() {
+  if (!isInitialized) {
+    try {
+      await bot.init();
+      isInitialized = true;
+    } catch (e) {
+      logger.warn("Bot init warning", { error: e });
+    }
+  }
+}
+
 const VALID_SECRETS = new Set([
   env.TELEGRAM_WEBHOOK_SECRET,
   "sec_r3nd0m1z3dW3bh00kS3cr3tForDagmawi",
@@ -20,6 +32,8 @@ export async function POST(req: Request) {
       logger.warn("Unauthorized webhook request", { receivedSecret: secretHeader });
       return new Response("Unauthorized", { status: 401 });
     }
+
+    await ensureBotInit();
 
     const update = await req.json();
     await bot.handleUpdate(update);
