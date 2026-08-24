@@ -19,13 +19,13 @@ export function StatCard({
   extra,
 }: StatCardProps) {
   return (
-    <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:border-white/[0.14] transition-all">
+    <div className="glass-card bg-[#111622]/90 border border-white/[0.08] rounded-2xl p-4 shadow-sm flex flex-col justify-between hover:border-sky-500/30 transition-all">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
           {title}
         </span>
         {Icon && (
-          <div className="p-2 rounded-xl bg-white/[0.04] border border-white/[0.05]">
+          <div className="p-2 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
             <Icon className={`w-4 h-4 ${iconColor}`} />
           </div>
         )}

@@ -131,7 +131,7 @@ export default function FunPage() {
                   }}
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
                     isSelected
-                      ? "bg-amber-500/15 text-amber-300 border-amber-500/40 shadow-sm"
+                      ? "bg-sky-500/15 text-sky-300 border-sky-500/40 shadow-sm"
                       : "bg-[#111622]/80 text-slate-400 border-white/[0.06] hover:text-slate-200"
                   }`}
                 >
@@ -150,8 +150,8 @@ export default function FunPage() {
               }}
               className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 tap-effect ${
                 roastLevel === "friendly"
-                  ? "bg-emerald-500/20 text-emerald-300 font-black border border-emerald-500/30"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-sky-500/20 text-sky-300 font-black border border-sky-500/30"
+                  : "text-slate-400 hover:text-slate-200 border border-transparent"
               }`}
             >
               <Smile className="w-3.5 h-3.5" /> Friendly
@@ -163,8 +163,8 @@ export default function FunPage() {
               }}
               className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 tap-effect ${
                 roastLevel === "normal"
-                  ? "bg-amber-500/20 text-amber-300 font-black border border-amber-500/30"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-sky-500/20 text-sky-300 font-black border border-sky-500/30"
+                  : "text-slate-400 hover:text-slate-200 border border-transparent"
               }`}
             >
               <Flame className="w-3.5 h-3.5" /> Spicy
@@ -176,8 +176,8 @@ export default function FunPage() {
               }}
               className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 tap-effect ${
                 roastLevel === "brutal"
-                  ? "bg-rose-500/20 text-rose-300 font-black border border-rose-500/30"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-sky-500/20 text-sky-300 font-black border border-sky-500/30"
+                  : "text-slate-400 hover:text-slate-200 border border-transparent"
               }`}
             >
               <Skull className="w-3.5 h-3.5" /> Brutal
@@ -189,8 +189,8 @@ export default function FunPage() {
               }}
               className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 tap-effect ${
                 roastLevel === "nuclear"
-                  ? "bg-red-600/30 text-red-300 font-black border border-red-500/40"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-sky-500/20 text-sky-300 font-black border border-sky-500/30"
+                  : "text-slate-400 hover:text-slate-200 border border-transparent"
               }`}
             >
               <Zap className="w-3.5 h-3.5" /> Nuclear
@@ -201,8 +201,8 @@ export default function FunPage() {
           {roastData && (
             <div className="glass-panel bg-[#111622]/90 border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-amber-400 bg-amber-400/10 px-2.5 py-1 rounded-lg border border-amber-400/20 flex items-center gap-1.5">
-                  <Flame className="w-3 h-3 fill-amber-400" /> {roastData.headline}
+                <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-sky-400 bg-sky-500/10 px-2.5 py-1 rounded-lg border border-sky-500/20 flex items-center gap-1.5">
+                  <Flame className="w-3 h-3 fill-sky-400" /> {roastData.headline}
                 </span>
 
                 <button
@@ -232,15 +232,15 @@ export default function FunPage() {
                 </p>
               </div>
 
-              <div className="p-3 bg-white/[0.03] border border-white/[0.05] rounded-xl text-xs font-semibold text-amber-300/90 text-center">
+              <div className="p-3 bg-white/[0.03] border border-white/[0.05] rounded-xl text-xs font-semibold text-slate-300 text-center">
                 {roastData.verdict}
               </div>
 
               <button
                 onClick={copyRoast}
-                className="w-full py-3 bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.1] text-white text-xs font-black rounded-xl shadow-md transition-all flex items-center justify-center gap-2 tap-effect"
+                className="w-full py-3 bg-sky-600 hover:bg-sky-500 border border-sky-400/20 text-white text-xs font-bold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 tap-effect"
               >
-                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-slate-300" />}
+                {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Share2 className="w-4 h-4 text-white" />}
                 <span>{copied ? "Copied to Clipboard! 🔥" : "Share This Roast"}</span>
               </button>
             </div>

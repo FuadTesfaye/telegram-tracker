@@ -104,9 +104,9 @@ export default function HomePage() {
         <Link
           href="/league"
           onClick={() => hapticFeedback("light")}
-          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-amber-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
+          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
         >
-          <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+          <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
             <Trophy className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-bold text-slate-200">League</span>
@@ -115,9 +115,9 @@ export default function HomePage() {
         <Link
           href="/fun"
           onClick={() => hapticFeedback("light")}
-          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-rose-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
+          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
         >
-          <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
+          <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
             <Sparkles className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-bold text-slate-200">Roast Hub</span>
@@ -128,7 +128,7 @@ export default function HomePage() {
           onClick={() => hapticFeedback("light")}
           className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
         >
-          <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+          <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
             <Swords className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-bold text-slate-200">Rival Gap</span>
@@ -137,9 +137,9 @@ export default function HomePage() {
         <Link
           href="/my"
           onClick={() => hapticFeedback("light")}
-          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-emerald-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
+          className="glass-card bg-[#111622]/90 border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
         >
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
             <PieChart className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-bold text-slate-200">Footprint</span>
@@ -201,14 +201,14 @@ export default function HomePage() {
               value={`${overview?.streaks.currentStreakDays || 0}d`}
               subtitle={`Best: ${overview?.streaks.longestStreakDays || 0} days`}
               icon={Flame}
-              iconColor="text-amber-400"
+              iconColor="text-sky-400"
             />
             <StatCard
               title="7-Day Total"
               value={overview?.sevenDays.formattedDuration || "0m"}
               subtitle="Observed screen time"
               icon={Activity}
-              iconColor="text-emerald-400"
+              iconColor="text-sky-400"
               extra={
                 overview && (
                   <TrendBadge
@@ -224,11 +224,11 @@ export default function HomePage() {
               value={formatDuration(
                 overview?.today.averageSessionSeconds ||
                   overview?.sevenDays.averageSessionSeconds ||
-                0
+                  0
               )}
               subtitle={`Peak: ${overview?.sevenDays.peakHour || 0}:00`}
               icon={Zap}
-              iconColor="text-cyan-400"
+              iconColor="text-sky-400"
             />
           </div>
 

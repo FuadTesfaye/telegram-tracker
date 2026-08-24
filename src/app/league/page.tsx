@@ -84,9 +84,9 @@ export default function LeaguePage() {
         <Link
           href="/fun"
           onClick={() => hapticFeedback("light")}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black rounded-xl shadow-sm transition-all tap-effect"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl shadow-sm transition-all tap-effect border border-sky-400/20"
         >
-          <Flame className="w-3.5 h-3.5 fill-slate-950" /> Roast Me
+          <Flame className="w-3.5 h-3.5 fill-white" /> Roast Me
         </Link>
       </div>
 
@@ -99,8 +99,8 @@ export default function LeaguePage() {
           }}
           className={`flex-1 py-2 rounded-lg transition-all tap-effect ${
             activeTab === "leaderboard"
-              ? "bg-white/[0.1] text-white shadow-sm font-black"
-              : "text-slate-400 hover:text-slate-200"
+              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm font-black"
+              : "text-slate-400 hover:text-slate-200 border border-transparent"
           }`}
         >
           🏆 Ranks
@@ -112,8 +112,8 @@ export default function LeaguePage() {
           }}
           className={`flex-1 py-2 rounded-lg transition-all tap-effect ${
             activeTab === "rival"
-              ? "bg-white/[0.1] text-white shadow-sm font-black"
-              : "text-slate-400 hover:text-slate-200"
+              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm font-black"
+              : "text-slate-400 hover:text-slate-200 border border-transparent"
           }`}
         >
           ⚔️ Rival
@@ -125,8 +125,8 @@ export default function LeaguePage() {
           }}
           className={`flex-1 py-2 rounded-lg transition-all tap-effect ${
             activeTab === "awards"
-              ? "bg-white/[0.1] text-white shadow-sm font-black"
-              : "text-slate-400 hover:text-slate-200"
+              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm font-black"
+              : "text-slate-400 hover:text-slate-200 border border-transparent"
           }`}
         >
           🎖 Awards

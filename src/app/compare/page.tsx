@@ -118,10 +118,10 @@ export default function ComparePage() {
                 <span className="font-bold text-sky-400 truncate">
                   {dataA.account.displayName || "@" + dataA.account.username}
                 </span>
-                <span className="font-semibold text-slate-400 uppercase text-[10px] tracking-wider">
+                <span className="font-bold text-slate-400 uppercase text-[10px] tracking-wider">
                   Metric
                 </span>
-                <span className="font-bold text-amber-400 truncate">
+                <span className="font-bold text-sky-400 truncate">
                   {dataB.account.displayName || "@" + dataB.account.username}
                 </span>
               </div>

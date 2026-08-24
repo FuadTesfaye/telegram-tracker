@@ -246,35 +246,35 @@ export default function MyTelegramPage() {
         </div>
       )}
 
-      {/* Metrics Grid */}
+      {/* Master Footprint Metrics */}
       <div className="grid grid-cols-2 gap-3">
         <StatCard
-          title="Total Observed"
+          title="Observed Time"
           value={footprint?.formattedTotalDuration || "0m"}
-          subtitle="Observed presence"
+          subtitle="Observed chats presence"
           icon={Clock}
           iconColor="text-sky-400"
         />
         <StatCard
           title="Messages Sent"
           value={footprint?.totalMessagesSent || 0}
-          subtitle="Observed footprint"
+          subtitle="Observable count"
           icon={MessageSquare}
-          iconColor="text-emerald-400"
+          iconColor="text-sky-400"
         />
         <StatCard
           title="Active Groups"
           value={footprint?.activeGroupsCount || 0}
-          subtitle="Communities active"
+          subtitle="Community participation"
           icon={Users}
-          iconColor="text-cyan-400"
+          iconColor="text-sky-400"
         />
         <StatCard
           title="Private Chats"
           value={footprint?.activePrivateChatsCount || 0}
           subtitle="Direct conversations"
           icon={UserCheck}
-          iconColor="text-amber-400"
+          iconColor="text-sky-400"
         />
       </div>
 
@@ -307,13 +307,13 @@ export default function MyTelegramPage() {
               <span className="text-slate-300 flex items-center gap-1.5">
                 👤 Private Chats
               </span>
-              <span className="font-mono font-bold text-emerald-400">
+              <span className="font-mono font-bold text-sky-300">
                 {footprint?.chatBreakdown.privateChatsPercent || 0}%
               </span>
             </div>
             <div className="h-2 rounded-full bg-black/40 overflow-hidden border border-white/[0.05]">
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all"
+                className="h-full bg-sky-400 rounded-full transition-all"
                 style={{ width: `${footprint?.chatBreakdown.privateChatsPercent || 0}%` }}
               />
             </div>
@@ -324,13 +324,13 @@ export default function MyTelegramPage() {
               <span className="text-slate-300 flex items-center gap-1.5">
                 📢 Channels
               </span>
-              <span className="font-mono font-bold text-amber-400">
+              <span className="font-mono font-bold text-sky-400">
                 {footprint?.chatBreakdown.channelsPercent || 0}%
               </span>
             </div>
             <div className="h-2 rounded-full bg-black/40 overflow-hidden border border-white/[0.05]">
               <div
-                className="h-full bg-amber-500 rounded-full transition-all"
+                className="h-full bg-sky-600 rounded-full transition-all"
                 style={{ width: `${footprint?.chatBreakdown.channelsPercent || 0}%` }}
               />
             </div>

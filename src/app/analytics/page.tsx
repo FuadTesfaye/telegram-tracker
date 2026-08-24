@@ -141,21 +141,21 @@ export default function AnalyticsPage() {
               value={formatDuration(overview?.personalBests.longestSessionSeconds || 0)}
               subtitle="Personal record"
               icon={Trophy}
-              iconColor="text-amber-400"
+              iconColor="text-sky-400"
             />
             <StatCard
               title="Peak Day Total"
               value={formatDuration(overview?.personalBests.highestDailyActivitySeconds || 0)}
               subtitle={overview?.personalBests.highestDailyDate || "Recent"}
               icon={Zap}
-              iconColor="text-emerald-400"
+              iconColor="text-sky-400"
             />
             <StatCard
               title="Current Streak"
               value={`${overview?.streaks.currentStreakDays || 0} Days`}
               subtitle={`Longest: ${overview?.streaks.longestStreakDays || 0}d`}
               icon={Flame}
-              iconColor="text-rose-400"
+              iconColor="text-sky-400"
             />
           </div>
 
