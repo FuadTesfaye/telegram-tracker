@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useTelegram } from "@/components/telegram-provider";
 import { EmptyState } from "@/components/empty-state";
+import type { RoastLevel } from "@/server/services/roast-engine.service";
 import {
   Flame,
   Medal,
@@ -12,12 +13,16 @@ import {
   CheckCircle2,
   Lock,
   RefreshCw,
+  Skull,
+  Smile,
+  Zap,
 } from "lucide-react";
 
 export default function FunPage() {
   const { user, hapticFeedback } = useTelegram();
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [roastLevel, setRoastLevel] = useState<RoastLevel>("normal");
   const [roastData, setRoastData] = useState<any>(null);
   const [isRoasting, setIsRoasting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -49,7 +54,7 @@ export default function FunPage() {
       setIsRoasting(true);
       hapticFeedback("heavy");
       const res = await fetch(
-        `/api/league/roast?userId=${user.id}&accountId=${selectedAccountId}`
+        `/api/league/roast?userId=${user.id}&accountId=${selectedAccountId}&level=${roastLevel}`
       );
       if (res.ok) {
         const data = await res.json();
@@ -66,18 +71,17 @@ export default function FunPage() {
     if (selectedAccountId) {
       loadRoast();
     }
-  }, [selectedAccountId]);
+  }, [selectedAccountId, roastLevel]);
 
   const copyRoast = () => {
     if (!roastData) return;
     hapticFeedback("success");
-    const shareText = `🔥 Telegram League Roast\n\nTarget: ${roastData.target.displayName}\nTitle: ${roastData.target.title}\n\n"${roastData.roast}"\n\n${roastData.verdict}\n\n🏆 Track. Compete. Get Roasted on Telegram League!`;
+    const shareText = `🔥 Telegram League Roast (${roastLevel.toUpperCase()})\n\nTarget: ${roastData.target.displayName}\nTitle: ${roastData.target.title}\n\n"${roastData.roastText || roastData.roast}"\n\n${roastData.verdict}\n\n🏆 Track. Compete. Get Roasted on Telegram League!`;
     navigator.clipboard.writeText(shareText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
 
-  // Predefined League Achievements
   const achievements = [
     {
       id: "first_blood",
@@ -158,6 +162,62 @@ export default function FunPage() {
             })}
           </div>
 
+          {/* Roast Level Selector */}
+          <div className="bg-slate-900/70 border border-slate-800/80 p-1 rounded-xl flex items-center justify-between text-xs font-bold">
+            <button
+              onClick={() => {
+                setRoastLevel("friendly");
+                hapticFeedback("light");
+              }}
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+                roastLevel === "friendly"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Smile className="w-3.5 h-3.5" /> Friendly
+            </button>
+            <button
+              onClick={() => {
+                setRoastLevel("normal");
+                hapticFeedback("light");
+              }}
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+                roastLevel === "normal"
+                  ? "bg-amber-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Flame className="w-3.5 h-3.5" /> Normal
+            </button>
+            <button
+              onClick={() => {
+                setRoastLevel("brutal");
+                hapticFeedback("light");
+              }}
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+                roastLevel === "brutal"
+                  ? "bg-rose-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Skull className="w-3.5 h-3.5" /> Brutal
+            </button>
+            <button
+              onClick={() => {
+                setRoastLevel("nuclear");
+                hapticFeedback("heavy");
+              }}
+              className={`flex-1 py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 ${
+                roastLevel === "nuclear"
+                  ? "bg-purple-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5" /> Nuclear
+            </button>
+          </div>
+
           {/* Roast Card */}
           {roastData && (
             <div className="bg-gradient-to-b from-rose-950/40 to-slate-900/90 border border-rose-800/60 rounded-3xl p-5 shadow-lg space-y-4">
@@ -185,7 +245,7 @@ export default function FunPage() {
               </div>
 
               <blockquote className="text-sm italic font-serif text-slate-200 leading-relaxed border-l-2 border-rose-500 pl-3">
-                "{roastData.roast}"
+                "{roastData.roastText || roastData.roast}"
               </blockquote>
 
               <div className="p-3 bg-slate-950/70 border border-slate-800 rounded-2xl text-xs font-semibold text-rose-300">

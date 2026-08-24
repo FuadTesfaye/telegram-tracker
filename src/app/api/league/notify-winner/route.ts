@@ -35,7 +35,7 @@ export async function POST(req: Request) {
       `${rows}\n\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
       `⚰️ *Weekly Victim:* *${victim?.displayName}*\n` +
-      `_${victim ? LeagueService.generateRoast(victim, 1, top3.length).roast : ""}_\n\n` +
+      `_${victim ? LeagueService.generateRoast(victim, 1, top3.length).roastText : ""}_\n\n` +
       `Open Telegram League to inspect the full leaderboard and mini-awards!`;
 
     await bot.api.sendMessage(user.telegramId, text, {

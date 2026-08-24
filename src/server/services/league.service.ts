@@ -2,8 +2,12 @@ import { AccountRepository } from "../repositories/account.repository";
 import { DailyRepository } from "../repositories/daily.repository";
 import { SessionRepository } from "../repositories/session.repository";
 import { UserRepository } from "../repositories/user.repository";
-import { formatDuration, round } from "@/lib/utils";
-import type { CoverageStatus } from "@/types";
+import { RoastEngineService, type RoastLevel } from "./roast-engine.service";
+import { FootprintService } from "./footprint.service";
+import { db } from "@/db";
+import { userRivals, userAchievements } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { formatDuration } from "@/lib/utils";
 
 export interface LeagueCompetitor {
   accountId: string;
@@ -17,8 +21,8 @@ export interface LeagueCompetitor {
   sessionCount: number;
   longestSessionSeconds: number;
   formattedLongestSession: string;
-  nightActivitySeconds: number; // after 22:00
-  morningActivitySeconds: number; // before 08:00
+  nightActivitySeconds: number;
+  morningActivitySeconds: number;
   title: string;
   tier: {
     name: "Bronze" | "Silver" | "Gold" | "Diamond" | "Telegram Royalty";
@@ -59,7 +63,6 @@ export class LeagueService {
     nightActivitySeconds: number;
     morningActivitySeconds: number;
     weeklyChangePercentage?: number;
-    dailyStdDev?: number;
   }): string {
     const hours = stats.totalActiveSeconds / 3600;
 
@@ -85,7 +88,6 @@ export class LeagueService {
       return "🧘 Enlightened One — Finally Left Telegram";
     }
 
-    // 3. Normal / Moderate titles
     if (hours >= 10) return "🏃 Professional Scroller";
     if (hours >= 5) return "🏠 Telegram Homeowner";
     if (hours >= 2) return "😐 Aggressively Normal";
@@ -110,58 +112,27 @@ export class LeagueService {
   }
 
   /**
-   * Generates a deterministic, hilarious, stat-backed roast
+   * Generates a multi-level roast using RoastEngineService
    */
-  static generateRoast(competitor: LeagueCompetitor, rank: number, totalCompetitors: number): {
-    headline: string;
-    roast: string;
-    verdict: string;
-  } {
-    const hours = Math.floor(competitor.totalActiveSeconds / 3600);
-    const minutes = Math.floor((competitor.totalActiveSeconds % 3600) / 60);
-    const durStr = `${hours}h ${minutes}m`;
-
-    if (hours >= 40) {
-      return {
-        headline: "👑 The Sovereign of Screen Time",
-        roast: `${durStr} observed this week. At this point Telegram isn't an app on your phone — you're an employee who forgot to clock out. People don't open Telegram anymore; they connect to the internet through you.`,
-        verdict: "⚰️ You spent more time on Telegram this week than most humans spend at full-time jobs.",
-      };
-    }
-
-    if (hours >= 25) {
-      return {
-        headline: "📱 Official Telegram Citizen",
-        roast: `${durStr} of activity across ${competitor.sessionCount} sessions. Your phone battery has officially filed a grievance with HR.`,
-        verdict: "🛋️ Your couch has formed a permanent imprint of your posture.",
-      };
-    }
-
-    if (hours >= 15) {
-      return {
-        headline: "🫡 Minister of Being Online",
-        roast: `${durStr} logged this week. You haven't quite ascended to full Telegram infrastructure yet, but your notifications never sleep.`,
-        verdict: "👀 Only a few more hours before you steal the crown.",
-      };
-    }
-
-    if (hours >= 5) {
-      return {
-        headline: "😐 Aggressively Normal",
-        roast: `${durStr} observed. You somehow managed to have a normal amount of Telegram activity. We find this deeply suspicious.`,
-        verdict: "🧘 Balanced, stable, and completely boring.",
-      };
-    }
-
-    return {
-      headline: "🫥 The Ghost Award",
-      roast: `Only ${durStr} observed. Did you lose your phone charger, or did you actually go outside and touch real grass?`,
-      verdict: "🌱 Confirmed living in the physical world.",
-    };
+  static generateRoast(
+    competitor: LeagueCompetitor,
+    rank: number,
+    totalCompetitors: number,
+    level: RoastLevel = "normal"
+  ) {
+    return RoastEngineService.generateRoast({
+      targetName: competitor.displayName,
+      totalActiveSeconds: competitor.totalActiveSeconds,
+      sessionCount: competitor.sessionCount,
+      longestSessionSeconds: competitor.longestSessionSeconds,
+      nightActivitySeconds: competitor.nightActivitySeconds,
+      morningActivitySeconds: competitor.morningActivitySeconds,
+      roastLevel: level,
+    });
   }
 
   /**
-   * Computes the current weekly leaderboard for a user's tracked accounts
+   * Computes the current weekly leaderboard for a user's tracked accounts (up to 3 slots)
    */
   static async getWeeklyLeaderboard(
     userId: string,
@@ -208,7 +179,6 @@ export class LeagueService {
         new Date()
       );
 
-      // Calculate night (22:00-06:00) and morning (06:00-09:00) presence
       let nightSecs = 0;
       let morningSecs = 0;
       for (const s of sessions) {
@@ -273,7 +243,7 @@ export class LeagueService {
   }
 
   /**
-   * Computes mini-awards (superlatives) for the week
+   * Computes mini-awards for the week
    */
   static calculateAwards(competitors: LeagueCompetitor[]): LeagueAward[] {
     if (competitors.length === 0) return [];
@@ -293,7 +263,7 @@ export class LeagueService {
       });
     }
 
-    // 2. Session King (Longest single session)
+    // 2. Session King
     const sessionKing = [...competitors].sort(
       (a, b) => b.longestSessionSeconds - a.longestSessionSeconds
     )[0];
@@ -309,7 +279,7 @@ export class LeagueService {
       });
     }
 
-    // 3. Serial Checker (Most sessions)
+    // 3. Serial Checker
     const serialChecker = [...competitors].sort(
       (a, b) => b.sessionCount - a.sessionCount
     )[0];
@@ -341,7 +311,7 @@ export class LeagueService {
       });
     }
 
-    // 5. Ghost Award (Lowest activity)
+    // 5. Ghost Award
     const ghost = competitors[competitors.length - 1];
     if (ghost && competitors.length > 1) {
       awards.push({
@@ -369,8 +339,21 @@ export class LeagueService {
     if (leaderboard.competitors.length < 2) return null;
 
     const userAccount = leaderboard.competitors[0];
-    const rivalAccount = rivalAccountId
-      ? leaderboard.competitors.find((c) => c.accountId === rivalAccountId) || leaderboard.competitors[1]
+    let targetRivalId = rivalAccountId;
+
+    if (!targetRivalId) {
+      const savedRival = await db
+        .select()
+        .from(userRivals)
+        .where(eq(userRivals.userId, userId))
+        .limit(1);
+      if (savedRival.length > 0) {
+        targetRivalId = savedRival[0].rivalAccountId;
+      }
+    }
+
+    const rivalAccount = targetRivalId
+      ? leaderboard.competitors.find((c) => c.accountId === targetRivalId) || leaderboard.competitors[1]
       : leaderboard.competitors[1];
 
     if (!userAccount || !rivalAccount) return null;
@@ -395,6 +378,28 @@ export class LeagueService {
   }
 
   /**
+   * Designate a specific rival account
+   */
+  static async setRival(userId: string, rivalAccountId: string) {
+    const [rival] = await db
+      .insert(userRivals)
+      .values({
+        userId,
+        rivalAccountId,
+      })
+      .onConflictDoUpdate({
+        target: userRivals.userId,
+        set: {
+          rivalAccountId,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    return rival;
+  }
+
+  /**
    * Midweek Prediction
    */
   static async getMidweekPrediction(userId: string): Promise<{
@@ -410,7 +415,7 @@ export class LeagueService {
     const leader = leaderboard.competitors[0];
     const runnerUp = leaderboard.competitors[1] || null;
 
-    const dayOfWeek = new Date().getDay() || 7; // 1 (Mon) to 7 (Sun)
+    const dayOfWeek = new Date().getDay() || 7;
     const multiplier = 7 / Math.max(1, dayOfWeek);
 
     const projectedLeaderSecs = Math.round(leader.totalActiveSeconds * multiplier);
@@ -425,7 +430,6 @@ export class LeagueService {
     };
   }
 
-  // --- Date helpers ---
   private static getWeekNumber(d: Date): number {
     const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));

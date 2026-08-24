@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { LeagueService } from "@/server/services/league.service";
+import type { RoastLevel } from "@/server/services/roast-engine.service";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     const accountId = searchParams.get("accountId");
+    const level = (searchParams.get("level") as RoastLevel) || "normal";
 
     if (!userId) {
       return NextResponse.json({ error: "Missing userId" }, { status: 400 });
@@ -23,7 +25,8 @@ export async function GET(req: Request) {
     const roast = LeagueService.generateRoast(
       target,
       target.rank,
-      leaderboard.competitors.length
+      leaderboard.competitors.length,
+      level
     );
 
     return NextResponse.json({

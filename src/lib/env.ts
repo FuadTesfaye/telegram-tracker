@@ -8,9 +8,11 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   DIRECT_URL: z.string().optional(),
   TELEGRAM_BOT_TOKEN: z.string().min(1, "TELEGRAM_BOT_TOKEN is required"),
-  TELEGRAM_API_ID: z.string().optional().default(""),
-  TELEGRAM_API_HASH: z.string().optional().default(""),
-  SESSION_ENCRYPTION_KEY: z.string().default("telemetr-32-byte-secret-encryption-key-pass!"),
+  TELEGRAM_API_ID: z.string().default("36049913"),
+  TELEGRAM_API_HASH: z.string().default("e74c1ddae57214cc7f66dfa54395eefb"),
+  NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: z.string().default("lurkening_bot"),
+  SESSION_SECRET: z.string().default("sec_jwtSecretKeyForDagmawiDispatchBroadsheet2026"),
+  SESSION_ENCRYPTION_KEY: z.string().default("sec_jwtSecretKeyForDagmawiDispatchBroadsheet2026"),
   NEXT_PUBLIC_APP_URL: z
     .string()
     .default(

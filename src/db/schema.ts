@@ -25,6 +25,7 @@ export const users = pgTable(
     languageCode: varchar("language_code", { length: 10 }).default("en"),
     timezone: varchar("timezone", { length: 64 }).default("UTC").notNull(),
     plan: varchar("plan", { length: 32 }).default("free").notNull(), // free, pro, enterprise
+    isSelfTracked: boolean("is_self_tracked").default(false).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -34,7 +35,7 @@ export const users = pgTable(
   ]
 );
 
-// 2. tracked_accounts
+// 2. tracked_accounts (up to 3 competitor slots)
 export const trackedAccounts = pgTable(
   "tracked_accounts",
   {
@@ -49,6 +50,7 @@ export const trackedAccounts = pgTable(
     displayName: varchar("display_name", { length: 255 }),
     label: varchar("label", { length: 64 }).default("Other"),
     notes: text("notes"),
+    isSelfAccount: boolean("is_self_account").default(false).notNull(),
     trackingStatus: varchar("tracking_status", { length: 32 }).default("active").notNull(), // active, paused, stopped, restricted, error
     trackingStartedAt: timestamp("tracking_started_at", { withTimezone: true }).defaultNow().notNull(),
     trackingStoppedAt: timestamp("tracking_stopped_at", { withTimezone: true }),
@@ -127,7 +129,7 @@ export const dailyActivity = pgTable(
     firstSeenAt: timestamp("first_seen_at", { withTimezone: true }),
     lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
     peakHour: integer("peak_hour").default(0).notNull(), // 0-23
-    coverageStatus: varchar("coverage_status", { length: 16 }).default("COMPLETE").notNull(), // COMPLETE, PARTIAL, MISSING
+    coverageStatus: varchar("coverage_status", { length: 16 }).default("COMPLETE").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
@@ -157,7 +159,88 @@ export const hourlyActivity = pgTable(
   ]
 );
 
-// 7. alerts
+// 7. telegram_chats (Observed chats & communities)
+export const telegramChats = pgTable(
+  "telegram_chats",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    ownerUserId: uuid("owner_user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    telegramChatId: bigint("telegram_chat_id", { mode: "number" }).notNull(),
+    chatType: varchar("chat_type", { length: 32 }).default("group").notNull(), // group, supergroup, channel, private
+    title: varchar("title", { length: 255 }).notNull(),
+    username: varchar("username", { length: 255 }),
+    customLabel: varchar("custom_label", { length: 64 }), // e.g. "Work", "Favorite Human", "Friends"
+    firstObservedAt: timestamp("first_observed_at", { withTimezone: true }).defaultNow().notNull(),
+    lastObservedAt: timestamp("last_observed_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_chats_owner").on(table.ownerUserId),
+    uniqueIndex("idx_chats_owner_tg_chat").on(table.ownerUserId, table.telegramChatId),
+  ]
+);
+
+// 8. chat_activity (Observed message counts and presence by chat)
+export const chatActivity = pgTable(
+  "chat_activity",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    trackedAccountId: uuid("tracked_account_id").references(() => trackedAccounts.id, {
+      onDelete: "cascade",
+    }),
+    chatId: uuid("chat_id")
+      .references(() => telegramChats.id, { onDelete: "cascade" })
+      .notNull(),
+    date: date("date").notNull(),
+    activeSeconds: integer("active_seconds").default(0).notNull(),
+    messageCount: integer("message_count").default(0).notNull(),
+    replyCount: integer("reply_count").default(0).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_chat_act_account").on(table.trackedAccountId),
+    index("idx_chat_act_chat_date").on(table.chatId, table.date),
+  ]
+);
+
+// 9. user_rivals (Designated head-to-head competitor)
+export const userRivals = pgTable(
+  "user_rivals",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .unique()
+      .notNull(),
+    rivalAccountId: uuid("rival_account_id")
+      .references(() => trackedAccounts.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  }
+);
+
+// 10. user_achievements (Unlocked trophies)
+export const userAchievements = pgTable(
+  "user_achievements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    achievementKey: varchar("achievement_key", { length: 64 }).notNull(),
+    unlockedAt: timestamp("unlocked_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("idx_user_achievements_unique").on(table.userId, table.achievementKey),
+  ]
+);
+
+// 11. alerts
 export const alerts = pgTable(
   "alerts",
   {
@@ -168,7 +251,7 @@ export const alerts = pgTable(
     trackedAccountId: uuid("tracked_account_id")
       .references(() => trackedAccounts.id, { onDelete: "cascade" })
       .notNull(),
-    type: varchar("type", { length: 32 }).notNull(), // LONG_SESSION, UNUSUALLY_HIGH_ACTIVITY, UNUSUALLY_LOW_ACTIVITY, TRACKING_STOPPED, TRACKING_RESUMED
+    type: varchar("type", { length: 32 }).notNull(),
     thresholdSeconds: integer("threshold_seconds").default(3600).notNull(),
     enabled: boolean("enabled").default(true).notNull(),
     lastTriggeredAt: timestamp("last_triggered_at", { withTimezone: true }),
@@ -181,7 +264,7 @@ export const alerts = pgTable(
   ]
 );
 
-// 8. reports
+// 12. reports
 export const reports = pgTable(
   "reports",
   {
@@ -192,7 +275,7 @@ export const reports = pgTable(
     trackedAccountId: uuid("tracked_account_id").references(() => trackedAccounts.id, {
       onDelete: "cascade",
     }),
-    periodType: varchar("period_type", { length: 16 }).notNull(), // DAILY, WEEKLY, MONTHLY
+    periodType: varchar("period_type", { length: 16 }).notNull(),
     periodStart: timestamp("period_start", { withTimezone: true }).notNull(),
     periodEnd: timestamp("period_end", { withTimezone: true }).notNull(),
     payload: jsonb("payload").notNull(),
@@ -204,7 +287,7 @@ export const reports = pgTable(
   ]
 );
 
-// 9. user_settings
+// 13. user_settings
 export const userSettings = pgTable(
   "user_settings",
   {
@@ -214,10 +297,10 @@ export const userSettings = pgTable(
       .unique()
       .notNull(),
     timezone: varchar("timezone", { length: 64 }).default("UTC").notNull(),
-    dailySummaryEnabled: boolean("daily_summary_enabled").default(false).notNull(),
+    dailySummaryEnabled: boolean("daily_summary_enabled").default(true).notNull(),
     dailySummaryTime: varchar("daily_summary_time", { length: 10 }).default("21:00").notNull(),
     weeklySummaryEnabled: boolean("weekly_summary_enabled").default(true).notNull(),
-    weeklySummaryDay: integer("weekly_summary_day").default(1).notNull(), // Monday
+    weeklySummaryDay: integer("weekly_summary_day").default(1).notNull(),
     alertNotificationsEnabled: boolean("alert_notifications_enabled").default(true).notNull(),
     exportFormatDefault: varchar("export_format_default", { length: 10 }).default("csv").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -225,11 +308,12 @@ export const userSettings = pgTable(
   }
 );
 
-// 10. mtproto_sessions
+// 14. mtproto_sessions (Encrypted user & worker sessions)
 export const mtprotoSessions = pgTable(
   "mtproto_sessions",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id").references(() => users.id, { onDelete: "cascade" }),
     sessionName: varchar("session_name", { length: 64 }).unique().notNull(),
     phoneOrAccount: varchar("phone_or_account", { length: 64 }),
     encryptedSessionData: text("encrypted_session_data").notNull(),

@@ -56,15 +56,15 @@ describe("Telegram League & Roast Engine", () => {
     const mockCompetitor = {
       accountId: "acc1",
       telegramUserId: 12345,
-      username: "alice",
-      displayName: "Alice",
-      label: "Friend",
+      username: "fuadtesfaye",
+      displayName: "Fuad Tesfaye",
+      label: "Myself",
       rank: 1,
       totalActiveSeconds: 42 * 3600,
-      formattedDuration: "42h 0m",
+      formattedDuration: "42h",
       sessionCount: 55,
       longestSessionSeconds: 7200,
-      formattedLongestSession: "2h 0m",
+      formattedLongestSession: "2h",
       nightActivitySeconds: 5000,
       morningActivitySeconds: 2000,
       title: "👑 Telegram Emperor",
@@ -73,9 +73,9 @@ describe("Telegram League & Roast Engine", () => {
       formattedGapToLeader: "0m",
     };
 
-    const roast = LeagueService.generateRoast(mockCompetitor, 1, 3);
-    expect(roast.roast).toContain("42h 0m observed this week");
-    expect(roast.roast).toContain("employee who forgot to clock out");
-    expect(roast.verdict).toContain("more time on Telegram this week than most humans spend at full-time jobs");
+    const roast = LeagueService.generateRoast(mockCompetitor, 1, 3, "normal");
+    expect(roast.roastText).toContain("42h logged this week");
+    expect(roast.roastText).toContain("employee who forgot to clock out");
+    expect(roast.verdict).toContain("more time on Telegram this week than most people spend at full-time jobs");
   });
 });

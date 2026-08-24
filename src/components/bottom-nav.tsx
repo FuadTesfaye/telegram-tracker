@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
+  User,
   Trophy,
   Flame,
-  BarChart3,
   Users,
 } from "lucide-react";
 import { useTelegram } from "./telegram-provider";
@@ -17,9 +17,9 @@ export function BottomNav() {
 
   const navItems = [
     { href: "/", label: "Home", icon: LayoutDashboard },
+    { href: "/my", label: "My Stats", icon: User },
     { href: "/league", label: "League", icon: Trophy },
     { href: "/fun", label: "Roast", icon: Flame },
-    { href: "/analytics", label: "Stats", icon: BarChart3 },
     { href: "/accounts", label: "Slots", icon: Users },
   ];
 
