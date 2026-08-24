@@ -5,7 +5,6 @@ import { AccountService } from "../services/account.service";
 import { AnalyticsService } from "../services/analytics.service";
 import { LeagueService } from "../services/league.service";
 import { FootprintService } from "../services/footprint.service";
-import { RoastEngineService } from "../services/roast-engine.service";
 import { BotMenus } from "./menus";
 import { formatDuration, normalizeUsername } from "@/lib/utils";
 import { logger } from "@/lib/logger";
@@ -102,7 +101,9 @@ export function registerBotHandlers(bot: Bot) {
     const tgUser = ctx.from;
     if (!tgUser) return;
 
-    await ctx.answerCallbackQuery();
+    try {
+      await ctx.answerCallbackQuery().catch(() => {});
+    } catch {}
 
     try {
       if (data === "action:home") {
@@ -111,10 +112,7 @@ export function registerBotHandlers(bot: Bot) {
           `🏆 *Telegram League Arena*\n` +
           `_Track. Compete. Get Roasted._\n\n` +
           `Select an option below to enter the competition or open the Mini App:`;
-        await ctx.editMessageText(text, {
-          parse_mode: "Markdown",
-          reply_markup: BotMenus.mainMenu(),
-        });
+        await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), true);
       } else if (data === "action:my") {
         await sendMyTelegramScreen(ctx, true);
       } else if (data === "action:league") {
@@ -131,11 +129,13 @@ export function registerBotHandlers(bot: Bot) {
         await sendDashboardScreen(ctx, true);
       } else if (data === "action:track") {
         userSessionState.set(tgUser.id, { state: "AWAITING_USERNAME" });
-        await ctx.editMessageText(
+        await safeSendOrEdit(
+          ctx,
           `➕ *Track a Telegram Account*\n\n` +
           `Send the public Telegram username to add to your competition (up to 3 slots):\n\n` +
           `_Example:_ \`@fuadtesfaye\``,
-          { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
+          BotMenus.backToMain(),
+          true
         );
       } else if (data === "action:accounts") {
         await sendAccountsScreen(ctx, true);
@@ -149,21 +149,22 @@ export function registerBotHandlers(bot: Bot) {
 
         try {
           const acc = await AccountService.addAccountToTrack(user.id, username);
-          await ctx.editMessageText(
+          await safeSendOrEdit(
+            ctx,
             `✅ *Competitor Enrolled!*\n\n` +
             `*${acc.displayName || "@" + acc.username}* has joined your Telegram League.\n\n` +
             `• Historical presence tracking begins now.\n` +
             `• Check \`/league\` anytime to inspect weekly standings.`,
-            {
-              parse_mode: "Markdown",
-              reply_markup: BotMenus.accountMenu(acc.id, true),
-            }
+            BotMenus.accountMenu(acc.id, true),
+            true
           );
         } catch (err: any) {
-          await ctx.editMessageText(`❌ *Error:* ${err.message || "Failed to add competitor"}`, {
-            parse_mode: "Markdown",
-            reply_markup: BotMenus.backToMain(),
-          });
+          await safeSendOrEdit(
+            ctx,
+            `❌ *Error:* ${err.message || "Failed to add competitor"}`,
+            BotMenus.backToMain(),
+            true
+          );
         }
       } else if (data.startsWith("action:toggle_track:")) {
         const accountId = data.replace("action:toggle_track:", "");
@@ -172,23 +173,29 @@ export function registerBotHandlers(bot: Bot) {
 
         if (acc.trackingStatus === "active") {
           await AccountService.stopTracking(accountId);
-          await ctx.editMessageText(
+          await safeSendOrEdit(
+            ctx,
             `⏸ *Tracking Paused* for *${acc.displayName || "@" + acc.username}*.`,
-            { parse_mode: "Markdown", reply_markup: BotMenus.accountMenu(accountId, false) }
+            BotMenus.accountMenu(accountId, false),
+            true
           );
         } else {
           await AccountService.resumeTracking(accountId);
-          await ctx.editMessageText(
+          await safeSendOrEdit(
+            ctx,
             `▶️ *Tracking Resumed* for *${acc.displayName || "@" + acc.username}*.`,
-            { parse_mode: "Markdown", reply_markup: BotMenus.accountMenu(accountId, true) }
+            BotMenus.accountMenu(accountId, true),
+            true
           );
         }
       } else if (data.startsWith("action:delete_acc:")) {
         const accountId = data.replace("action:delete_acc:", "");
         await AccountService.deleteAccount(accountId);
-        await ctx.editMessageText(
+        await safeSendOrEdit(
+          ctx,
           `🗑 *Competitor removed from Telegram League.*`,
-          { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
+          BotMenus.backToMain(),
+          true
         );
       }
     } catch (error: any) {
@@ -242,6 +249,19 @@ export function registerBotHandlers(bot: Bot) {
   });
 }
 
+// --- Helper for Safe Send or Edit ---
+async function safeSendOrEdit(ctx: Context, text: string, replyMarkup: any, edit: boolean = false) {
+  if (edit) {
+    try {
+      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: replyMarkup });
+      return;
+    } catch {
+      // Fall back to sending reply if message edit fails
+    }
+  }
+  await ctx.reply(text, { parse_mode: "Markdown", reply_markup: replyMarkup });
+}
+
 // --- Screen Builders ---
 
 async function sendMyTelegramScreen(ctx: Context, edit: boolean = false) {
@@ -264,11 +284,7 @@ async function sendMyTelegramScreen(ctx: Context, edit: boolean = false) {
       : "") +
     `Open the Mini App to connect your personal Telegram account and inspect hourly replays!`;
 
-  if (edit) {
-    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  } else {
-    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  }
+  await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
 }
 
 async function sendFootprintScreen(ctx: Context, edit: boolean = false) {
@@ -282,11 +298,7 @@ async function sendFootprintScreen(ctx: Context, edit: boolean = false) {
     const text =
       `🕵️ *CHAT FOOTPRINT*\n\n` +
       `No observed chats yet. Connect your account in the Mini App or observe groups to build your activity footprint.`;
-    if (edit) {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    } else {
-      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    }
+    await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
     return;
   }
 
@@ -301,11 +313,7 @@ async function sendFootprintScreen(ctx: Context, edit: boolean = false) {
     `${rows}\n\n` +
     `_Only chats where your session has legitimate visibility are shown._`;
 
-  if (edit) {
-    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  } else {
-    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  }
+  await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
 }
 
 async function sendLeagueScreen(ctx: Context, edit: boolean = false) {
@@ -321,11 +329,7 @@ async function sendLeagueScreen(ctx: Context, edit: boolean = false) {
       `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
       `No competitors enrolled yet! Add up to 3 accounts (e.g. \`@fuadtesfaye\`) to begin the weekly competition.`;
 
-    if (edit) {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    } else {
-      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    }
+    await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
     return;
   }
 
@@ -345,11 +349,7 @@ async function sendLeagueScreen(ctx: Context, edit: boolean = false) {
     `${rows}` +
     gapText;
 
-  if (edit) {
-    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  } else {
-    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  }
+  await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
 }
 
 async function sendRoastScreen(ctx: Context, edit: boolean = false) {
@@ -361,11 +361,7 @@ async function sendRoastScreen(ctx: Context, edit: boolean = false) {
 
   if (leaderboard.competitors.length === 0) {
     const text = `🔥 *Roast Me*\n\nEnroll at least one account to get roasted!`;
-    if (edit) {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    } else {
-      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    }
+    await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
     return;
   }
 
@@ -381,11 +377,7 @@ async function sendRoastScreen(ctx: Context, edit: boolean = false) {
     `💬 _"${roastData.roastText}"_\n\n` +
     `${roastData.verdict}`;
 
-  if (edit) {
-    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  } else {
-    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  }
+  await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
 }
 
 async function sendRivalScreen(ctx: Context, edit: boolean = false) {
@@ -397,11 +389,7 @@ async function sendRivalScreen(ctx: Context, edit: boolean = false) {
 
   if (!rivalData) {
     const text = `⚔️ *The Rival*\n\nYou need at least 2 tracked accounts to activate head-to-head rivalry mode!`;
-    if (edit) {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    } else {
-      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    }
+    await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
     return;
   }
 
@@ -415,11 +403,7 @@ async function sendRivalScreen(ctx: Context, edit: boolean = false) {
     `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
     `${statusMessage}`;
 
-  if (edit) {
-    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  } else {
-    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  }
+  await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
 }
 
 async function sendAwardsScreen(ctx: Context, edit: boolean = false) {
@@ -431,11 +415,7 @@ async function sendAwardsScreen(ctx: Context, edit: boolean = false) {
 
   if (leaderboard.awards.length === 0) {
     const text = `🎖 *Mini-Awards*\n\nNo awards assigned yet. Ranks calculate every week based on observed presence.`;
-    if (edit) {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    } else {
-      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    }
+    await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
     return;
   }
 
@@ -448,11 +428,7 @@ async function sendAwardsScreen(ctx: Context, edit: boolean = false) {
     `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
     `${rows}`;
 
-  if (edit) {
-    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  } else {
-    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.leagueMenu() });
-  }
+  await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
 }
 
 async function sendDashboardScreen(ctx: Context, edit: boolean = false) {
@@ -468,11 +444,7 @@ async function sendDashboardScreen(ctx: Context, edit: boolean = false) {
       `👤 *No Tracked Accounts*\n\n` +
       `Start tracking a Telegram account (e.g. \`@fuadtesfaye\`) to join the competition.`;
 
-    if (edit) {
-      await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    } else {
-      await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.mainMenu() });
-    }
+    await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
     return;
   }
 
@@ -495,11 +467,7 @@ async function sendDashboardScreen(ctx: Context, edit: boolean = false) {
     `*Competitors:*\n` +
     accountsText.join("\n");
 
-  if (edit) {
-    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.accountsListMenu(accounts) });
-  } else {
-    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.accountsListMenu(accounts) });
-  }
+  await safeSendOrEdit(ctx, text, BotMenus.accountsListMenu(accounts), edit);
 }
 
 async function sendAccountsScreen(ctx: Context, edit: boolean = false) {
@@ -515,19 +483,13 @@ async function sendAccountsScreen(ctx: Context, edit: boolean = false) {
       ? `No accounts enrolled. Tap below to add your first competitor.`
       : `Select a competitor to view session history and roasts:`);
 
-  if (edit) {
-    await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: BotMenus.accountsListMenu(accounts) });
-  } else {
-    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: BotMenus.accountsListMenu(accounts) });
-  }
+  await safeSendOrEdit(ctx, text, BotMenus.accountsListMenu(accounts), edit);
 }
 
 async function sendAccountDetailScreen(ctx: Context, accountId: string, edit: boolean = false) {
   const overview = await AnalyticsService.getAccountOverview(accountId);
   if (!overview) {
-    if (edit) {
-      await ctx.editMessageText("❌ Account not found.", { reply_markup: BotMenus.backToMain() });
-    }
+    await safeSendOrEdit(ctx, "❌ Account not found.", BotMenus.backToMain(), edit);
     return;
   }
 
@@ -549,15 +511,10 @@ async function sendAccountDetailScreen(ctx: Context, accountId: string, edit: bo
     `• *Peak Hour:* \`${overview.sevenDays.peakHour}:00 - ${overview.sevenDays.peakHour + 1}:00\`\n` +
     `• *Active Streak:* \`${overview.streaks.currentStreakDays} days\``;
 
-  if (edit) {
-    await ctx.editMessageText(text, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.accountMenu(accountId, acc.trackingStatus === "active"),
-    });
-  } else {
-    await ctx.reply(text, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.accountMenu(accountId, acc.trackingStatus === "active"),
-    });
-  }
+  await safeSendOrEdit(
+    ctx,
+    text,
+    BotMenus.accountMenu(accountId, acc.trackingStatus === "active"),
+    edit
+  );
 }
