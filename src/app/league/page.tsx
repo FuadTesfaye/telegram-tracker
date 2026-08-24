@@ -15,14 +15,28 @@ import {
   Share2,
   Check,
   Zap,
+  TrendingUp,
+  Dices,
+  Coins,
 } from "lucide-react";
 
 import { useCachedData } from "@/lib/use-cached-data";
 
 export default function LeaguePage() {
   const { user, hapticFeedback } = useTelegram();
-  const [activeTab, setActiveTab] = useState<"leaderboard" | "rival" | "awards">("leaderboard");
+  const [activeTab, setActiveTab] = useState<
+    "leaderboard" | "rival" | "wagers" | "awards"
+  >("leaderboard");
   const [copiedRoast, setCopiedRoast] = useState(false);
+  const [wagerTarget, setWagerTarget] = useState<string | null>(null);
+  const [wagerAmount, setWagerAmount] = useState<number>(250);
+  const [lockedWager, setLockedWager] = useState<{
+    targetName: string;
+    amount: number;
+    odds: number;
+    potentialWin: number;
+  } | null>(null);
+  const [copiedWager, setCopiedWager] = useState(false);
 
   const {
     data: leaderboardData,
@@ -41,7 +55,14 @@ export default function LeaguePage() {
     rival: any;
   }>(user ? `/api/league/rival?userId=${user.id}` : null, { ttlMs: 20000 });
 
+  const { data: betsResp } = useCachedData<{
+    weekNumber: number;
+    userPoints: number;
+    odds: any[];
+  }>(user ? `/api/league/bets?userId=${user.id}` : null, { ttlMs: 20000 });
+
   const rivalData = rivalResp?.rival || null;
+  const betsData = betsResp || null;
   const isLoading = isLeagueLoading && !leaderboardData;
 
   const fetchLeague = () => {
@@ -49,10 +70,29 @@ export default function LeaguePage() {
     refetchRival();
   };
 
+  const handlePlaceWager = (target: any) => {
+    hapticFeedback("success");
+    const potentialWin = Math.round(wagerAmount * target.odds);
+    setLockedWager({
+      targetName: target.displayName,
+      amount: wagerAmount,
+      odds: target.odds,
+      potentialWin,
+    });
+  };
+
+  const copyWager = (wager: any) => {
+    hapticFeedback("light");
+    const text = `🎲 Telegram League Wager\n\nI locked in ${wager.amount} pts on *${wager.targetName}* to win Week ${leaderboardData?.weekNumber || 35} at ${wager.odds}x odds!\n\n💰 Potential Payout: ${wager.potentialWin} pts\n\n👉 Place your prediction on Telegram League!`;
+    navigator.clipboard.writeText(text);
+    setCopiedWager(true);
+    setTimeout(() => setCopiedWager(false), 2500);
+  };
+
   const copyRoast = (text: string) => {
+    hapticFeedback("light");
     navigator.clipboard.writeText(text);
     setCopiedRoast(true);
-    hapticFeedback("medium");
     setTimeout(() => setCopiedRoast(false), 2000);
   };
 
@@ -117,6 +157,19 @@ export default function LeaguePage() {
           }`}
         >
           ⚔️ Rival
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab("wagers");
+            hapticFeedback("light");
+          }}
+          className={`flex-1 py-2 rounded-lg transition-all tap-effect ${
+            activeTab === "wagers"
+              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm font-black"
+              : "text-slate-400 hover:text-slate-200 border border-transparent"
+          }`}
+        >
+          🎲 Bets
         </button>
         <button
           onClick={() => {
@@ -320,7 +373,161 @@ export default function LeaguePage() {
             </div>
           )}
 
-          {/* TAB 3: MINI AWARDS */}
+          {/* TAB 3: WAGERS & PREDICTIONS */}
+          {activeTab === "wagers" && (
+            <div className="space-y-3">
+              {/* Balance Card */}
+              <div className="p-4 glass-panel bg-[#111622]/90 border border-sky-500/20 rounded-2xl flex items-center justify-between shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                    <Coins className="w-5 h-5 stroke-[2.25]" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Weekly Wager Balance
+                    </span>
+                    <span className="text-lg font-black text-slate-100 font-mono tabular-nums">
+                      {lockedWager ? 1000 - lockedWager.amount : 1000} <span className="text-xs text-sky-400 font-sans font-bold">PTS</span>
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-slate-400 bg-black/40 px-2 py-1 rounded-lg border border-white/[0.05]">
+                  Week {leaderboardData.weekNumber}
+                </span>
+              </div>
+
+              {/* Active / Locked Wager Slip */}
+              {lockedWager && (
+                <div className="p-4 bg-[#131a28] border border-sky-500/30 rounded-2xl space-y-3 shadow-lg animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-sky-400 stroke-[3]" /> Wager Locked In
+                    </span>
+                    <button
+                      onClick={() => copyWager(lockedWager)}
+                      className="text-xs text-slate-400 hover:text-white flex items-center gap-1 bg-white/[0.05] border border-white/[0.06] px-2.5 py-1 rounded-lg tap-effect"
+                    >
+                      {copiedWager ? <Check className="w-3 h-3 text-emerald-400" /> : <Share2 className="w-3 h-3" />}
+                      <span className="text-[10px] font-bold">{copiedWager ? "Copied" : "Share"}</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div>
+                      <span className="text-xs font-bold text-slate-100 block">
+                        Predicted Winner: {lockedWager.targetName}
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-medium">
+                        Staked: <strong className="font-mono text-slate-200">{lockedWager.amount} pts</strong> @ {lockedWager.odds}x
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold block">Potential Payout</span>
+                      <span className="text-sm font-black text-sky-400 font-mono tabular-nums">
+                        +{lockedWager.potentialWin} pts
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Wager Amount Selector */}
+              <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-300">Wager Stake:</span>
+                  <span className="font-mono font-bold text-sky-400">{wagerAmount} PTS</span>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[100, 250, 500, 1000].map((amt) => (
+                    <button
+                      key={amt}
+                      onClick={() => {
+                        setWagerAmount(amt);
+                        hapticFeedback("light");
+                      }}
+                      className={`py-1.5 text-xs font-mono font-bold rounded-lg transition-all tap-effect border ${
+                        wagerAmount === amt
+                          ? "bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm"
+                          : "bg-black/30 text-slate-400 border-white/[0.04] hover:text-slate-200"
+                      }`}
+                    >
+                      {amt === 1000 ? "ALL-IN" : `${amt}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Telemetry Odds Board */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+                  Live Telemetry Odds
+                </h4>
+
+                {(!betsData?.odds || betsData.odds.length === 0) ? (
+                  <EmptyState
+                    icon={Dices}
+                    title="Odds Calculating"
+                    description="Weekly wagers unlock as competitor telemetry aggregates."
+                  />
+                ) : (
+                  betsData.odds.map((oddItem: any) => {
+                    const isSelected = wagerTarget === oddItem.displayName;
+                    return (
+                      <div
+                        key={oddItem.accountId}
+                        className={`p-3.5 glass-card bg-[#111622]/90 border rounded-2xl transition-all space-y-2 ${
+                          isSelected
+                            ? "border-sky-500/50 shadow-md"
+                            : "border-white/[0.07] hover:border-white/[0.12]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-xs font-bold text-slate-100 flex items-center gap-2">
+                              <span>{oddItem.displayName}</span>
+                              <span
+                                className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                                  oddItem.role === "FAVORITE"
+                                    ? "bg-sky-500/15 text-sky-300 border border-sky-500/30"
+                                    : oddItem.role === "CONTENDER"
+                                    ? "bg-white/[0.08] text-slate-300 border border-white/[0.1]"
+                                    : "bg-black/40 text-slate-400 border border-white/[0.05]"
+                                }`}
+                              >
+                                {oddItem.role}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-medium">
+                              7d Activity: <strong className="font-mono text-slate-300">{oddItem.formattedDuration}</strong> • {oddItem.impliedProbability}% implied win rate
+                            </span>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="text-sm font-black text-sky-400 font-mono tabular-nums block">
+                              {oddItem.odds}x
+                            </span>
+                            <span className="text-[9px] text-slate-500 font-medium uppercase">
+                              Multiplier
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handlePlaceWager(oddItem)}
+                          className="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl transition-all tap-effect border border-sky-400/20 flex items-center justify-center gap-1.5 shadow-sm"
+                        >
+                          <Dices className="w-3.5 h-3.5" />
+                          <span>Bet {wagerAmount} pts on {oddItem.displayName} (Win +{Math.round(wagerAmount * oddItem.odds)} pts)</span>
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: MINI AWARDS */}
           {activeTab === "awards" && (
             <div className="space-y-2.5">
               {leaderboardData.awards.length === 0 ? (

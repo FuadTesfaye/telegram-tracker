@@ -148,6 +148,26 @@ async function runTests() {
     results.push({ name: "Telegram Bot Webhook", url: "/api/bot", status: 500, ok: false, details: e.message });
   }
 
+  // 7. League Bets & Odds API
+  try {
+    const res = await fetch(`${BASE_URL}/api/league/bets?userId=${TEST_USER_ID}`);
+    const data = await res.json();
+    results.push({
+      name: "League Bets & Multipliers API",
+      url: `/api/league/bets?userId=${TEST_USER_ID}`,
+      status: res.status,
+      ok: res.ok && Array.isArray(data.odds),
+      details: {
+        weekNumber: data.weekNumber,
+        userPoints: data.userPoints,
+        oddsCount: data.odds?.length,
+        favorite: data.odds?.[0] ? `${data.odds[0].displayName} (${data.odds[0].odds}x)` : "None",
+      },
+    });
+  } catch (e: any) {
+    results.push({ name: "League Bets API", url: "/api/league/bets", status: 500, ok: false, details: e.message });
+  }
+
   // Print Summary Table
   console.log("═══════════════════════════════════════════════════════════════════════════");
   console.log("                      LIVE TEST RESULTS REPORT                             ");

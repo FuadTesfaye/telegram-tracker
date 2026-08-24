@@ -23,6 +23,8 @@ import {
   Swords,
   Sparkles,
   PieChart,
+  Dices,
+  Coins,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -145,6 +147,31 @@ export default function HomePage() {
           <span className="text-[11px] font-bold text-slate-200">Footprint</span>
         </Link>
       </div>
+
+      {/* Weekly Predictions & Wagers Banner */}
+      <Link
+        href="/league"
+        onClick={() => hapticFeedback("light")}
+        className="glass-card bg-[#111622]/90 border border-sky-500/20 hover:border-sky-500/40 p-3.5 rounded-2xl flex items-center justify-between transition-all tap-effect shadow-sm"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+            <Dices className="w-5 h-5 stroke-[2.25]" />
+          </div>
+          <div>
+            <span className="text-xs font-bold text-slate-100 block">
+              🎲 Week 35 Crown Wagers
+            </span>
+            <span className="text-[11px] text-slate-400 font-medium">
+              1,000 PTS weekly allocation • Lock in champion odds
+            </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-bold text-sky-400">
+          <span>Place Bet</span>
+          <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
+        </div>
+      </Link>
 
       {accounts.length === 0 ? (
         <EmptyState
