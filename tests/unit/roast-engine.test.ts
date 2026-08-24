@@ -1,39 +1,25 @@
 import { describe, it, expect } from "vitest";
 import { RoastEngineService } from "../../src/server/services/roast-engine.service";
 
-describe("Deterministic Roast Rules Engine", () => {
-  it("classifies TELEGRAM_INFRASTRUCTURE for 40h+ activity", () => {
-    const archetype = RoastEngineService.classifyArchetype({
-      targetName: "Alice",
-      totalActiveSeconds: 42 * 3600,
-      sessionCount: 50,
-      longestSessionSeconds: 7200,
-    });
-    expect(archetype).toBe("TELEGRAM_INFRASTRUCTURE");
-
+describe("Data-Driven Roast Rules Engine & Master Catalog", () => {
+  it("generates Weekly Winner roast for #1 rank", () => {
     const roast = RoastEngineService.generateRoast({
       targetName: "Alice",
+      rank: 1,
+      totalCompetitors: 3,
       totalActiveSeconds: 42 * 3600,
       sessionCount: 50,
       longestSessionSeconds: 7200,
-      roastLevel: "nuclear",
+      roastLevel: "normal",
     });
-    expect(roast.roastText).toContain("Pavel Durov");
-    expect(roast.verdict).toContain("critical mass");
+
+    expect(roast.category).toBe("WEEKLY_WINNER");
+    expect(roast.title).toBeDefined();
+    expect(roast.roastText).toBeDefined();
+    expect(roast.verdict).toBeDefined();
   });
 
-  it("classifies THE_OBSERVER for high active time with low message count in a chat", () => {
-    const archetype = RoastEngineService.classifyArchetype({
-      targetName: "Bob",
-      totalActiveSeconds: 10 * 3600,
-      sessionCount: 15,
-      longestSessionSeconds: 3600,
-      topChatName: "Developers Group",
-      topChatSeconds: 2.5 * 3600,
-      topChatMessageCount: 3,
-    });
-    expect(archetype).toBe("THE_OBSERVER");
-
+  it("generates The Observer roast for low message, high time", () => {
     const roast = RoastEngineService.generateRoast({
       targetName: "Bob",
       totalActiveSeconds: 10 * 3600,
@@ -44,51 +30,54 @@ describe("Deterministic Roast Rules Engine", () => {
       topChatMessageCount: 3,
       roastLevel: "normal",
     });
-    expect(roast.roastText).toContain("conducting field research");
-    expect(roast.verdict).toContain("impressive lack of typing");
+
+    expect(roast.category).toBe("LOW_MESSAGES_HIGH_TIME");
+    expect(roast.roastText.length).toBeGreaterThan(10);
   });
 
-  it("classifies SPEED_TYPER for rapid message bursts", () => {
-    const archetype = RoastEngineService.classifyArchetype({
-      targetName: "Charlie",
-      totalActiveSeconds: 5 * 3600,
-      sessionCount: 10,
-      longestSessionSeconds: 1800,
-      topChatName: "Startup Group",
-      topChatSeconds: 1200,
-      topChatMessageCount: 95,
-    });
-    expect(archetype).toBe("SPEED_TYPER");
-
+  it("generates Girl Group / Diplomatic roast when custom labeled", () => {
     const roast = RoastEngineService.generateRoast({
-      targetName: "Charlie",
-      totalActiveSeconds: 5 * 3600,
-      sessionCount: 10,
+      targetName: "David",
+      totalActiveSeconds: 6 * 3600,
+      sessionCount: 12,
       longestSessionSeconds: 1800,
-      topChatName: "Startup Group",
-      topChatSeconds: 1200,
-      topChatMessageCount: 95,
+      topChatName: "Girls Group",
+      customChatLabel: "Girls Group",
+      topChatSeconds: 2.5 * 3600,
+      topChatMessageCount: 4,
       roastLevel: "normal",
     });
-    expect(roast.roastText).toContain("unloaded a magazine");
+
+    expect(roast.category).toBe("GIRL_GROUP");
+    expect(roast.title).toBeDefined();
   });
 
-  it("classifies SERIAL_CHECKER for frequent short sessions", () => {
-    const archetype = RoastEngineService.classifyArchetype({
-      targetName: "Dave",
-      totalActiveSeconds: 2 * 3600,
-      sessionCount: 45,
-      longestSessionSeconds: 300,
-    });
-    expect(archetype).toBe("SERIAL_CHECKER");
-
+  it("generates Favorite Human roast when top private chat dominates", () => {
     const roast = RoastEngineService.generateRoast({
-      targetName: "Dave",
-      totalActiveSeconds: 2 * 3600,
-      sessionCount: 45,
-      longestSessionSeconds: 300,
+      targetName: "Eve",
+      totalActiveSeconds: 8 * 3600,
+      sessionCount: 20,
+      longestSessionSeconds: 3600,
+      topChatType: "private",
+      topChatName: "Best Friend",
+      topChatPercent: 45,
+      topChatSeconds: 3.6 * 3600,
       roastLevel: "normal",
     });
-    expect(roast.roastText).toContain("checking the fridge");
+
+    expect(roast.category).toBe("TOP_PRIVATE_CHAT");
+    expect(roast.roastText).toBeDefined();
+  });
+
+  it("generates legendary Roast of the Week", () => {
+    const rotw = RoastEngineService.generateRoastOfTheWeek("Alice", 42 * 3600, 85);
+    expect(rotw).toContain("ROAST OF THE WEEK");
+    expect(rotw).toContain("Alice");
+  });
+
+  it("generates Three-Account Triumvirate title", () => {
+    const title = RoastEngineService.getThreeAccountTriumvirateTitle();
+    expect(typeof title).toBe("string");
+    expect(title.length).toBeGreaterThan(3);
   });
 });

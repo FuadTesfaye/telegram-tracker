@@ -63,36 +63,22 @@ export class LeagueService {
     nightActivitySeconds: number;
     morningActivitySeconds: number;
     weeklyChangePercentage?: number;
+    rank?: number;
+    totalCompetitors?: number;
   }): string {
-    const hours = stats.totalActiveSeconds / 3600;
+    const roast = RoastEngineService.generateRoast({
+      targetName: "Competitor",
+      totalActiveSeconds: stats.totalActiveSeconds,
+      longestSessionSeconds: stats.longestSessionSeconds,
+      sessionCount: stats.sessionCount,
+      nightActivitySeconds: stats.nightActivitySeconds,
+      morningActivitySeconds: stats.morningActivitySeconds,
+      weeklyChangePercent: stats.weeklyChangePercentage,
+      rank: stats.rank,
+      totalCompetitors: stats.totalCompetitors,
+    });
 
-    // 1. Extreme duration titles
-    if (hours >= 45) return "🛰️ Telegram Infrastructure";
-    if (hours >= 40) return "👑 Telegram Emperor";
-    if (hours >= 35) return "🧠 Supreme Online Commander";
-    if (hours >= 30) return "📱 Full-Time Telegram Employee";
-    if (hours >= 25) return "🫡 Minister of Being Online";
-    if (hours >= 20) return "📡 24/7 Signal Tower";
-    if (hours >= 15) return "🔌 Human Push Notification";
-
-    // 2. Behavioral titles
-    if (stats.longestSessionSeconds >= 4 * 3600) return "🪑 The Chair Resident";
-    if (stats.sessionCount >= 80) return "🚪 Door → Telegram → Door → Telegram";
-    if (stats.nightActivitySeconds >= 8 * 3600) return "🌙 Lord of the Night Shift";
-    if (stats.morningActivitySeconds >= 5 * 3600) return "☀️ The 5AM Telegram Prophet";
-
-    if (stats.weeklyChangePercentage && stats.weeklyChangePercentage >= 50) {
-      return "📈 The Comeback Addict";
-    }
-    if (stats.weeklyChangePercentage && stats.weeklyChangePercentage <= -40) {
-      return "🧘 Enlightened One — Finally Left Telegram";
-    }
-
-    if (hours >= 10) return "🏃 Professional Scroller";
-    if (hours >= 5) return "🏠 Telegram Homeowner";
-    if (hours >= 2) return "😐 Aggressively Normal";
-
-    return "🫥 The Ghost Lurker";
+    return roast.title;
   }
 
   /**
@@ -122,6 +108,8 @@ export class LeagueService {
   ) {
     return RoastEngineService.generateRoast({
       targetName: competitor.displayName,
+      rank,
+      totalCompetitors,
       totalActiveSeconds: competitor.totalActiveSeconds,
       sessionCount: competitor.sessionCount,
       longestSessionSeconds: competitor.longestSessionSeconds,
@@ -140,6 +128,8 @@ export class LeagueService {
   ): Promise<{
     weekNumber: number;
     year: number;
+    triumvirateTitle: string;
+    roastOfTheWeek: string;
     competitors: LeagueCompetitor[];
     awards: LeagueAward[];
     weeklyVictim: LeagueCompetitor | null;
@@ -188,14 +178,6 @@ export class LeagueService {
         if (hr >= 6 && hr < 9) morningSecs += dur;
       }
 
-      const title = this.generateTitle({
-        totalActiveSeconds: totalSeconds,
-        longestSessionSeconds: longestSession,
-        sessionCount: totalSessions,
-        nightActivitySeconds: nightSecs,
-        morningActivitySeconds: morningSecs,
-      });
-
       const tier = this.getTier(totalSeconds);
 
       competitorList.push({
@@ -212,7 +194,7 @@ export class LeagueService {
         formattedLongestSession: formatDuration(longestSession),
         nightActivitySeconds: nightSecs,
         morningActivitySeconds: morningSecs,
-        title,
+        title: "", // Assigned after sorting
         tier,
         gapToLeaderSeconds: 0,
         formattedGapToLeader: "0m",
@@ -228,14 +210,36 @@ export class LeagueService {
       c.rank = idx + 1;
       c.gapToLeaderSeconds = Math.max(0, leaderSeconds - c.totalActiveSeconds);
       c.formattedGapToLeader = formatDuration(c.gapToLeaderSeconds);
+
+      c.title = this.generateTitle({
+        totalActiveSeconds: c.totalActiveSeconds,
+        longestSessionSeconds: c.longestSessionSeconds,
+        sessionCount: c.sessionCount,
+        nightActivitySeconds: c.nightActivitySeconds,
+        morningActivitySeconds: c.morningActivitySeconds,
+        rank: c.rank,
+        totalCompetitors: competitorList.length,
+      });
     });
 
     const awards = this.calculateAwards(competitorList);
     const weeklyVictim = competitorList.length > 0 ? competitorList[0] : null;
+    const triumvirateTitle = RoastEngineService.getThreeAccountTriumvirateTitle();
+
+    let roastOfTheWeek = "";
+    if (weeklyVictim) {
+      roastOfTheWeek = RoastEngineService.generateRoastOfTheWeek(
+        weeklyVictim.displayName,
+        weeklyVictim.totalActiveSeconds,
+        weeklyVictim.sessionCount
+      );
+    }
 
     return {
       weekNumber,
       year,
+      triumvirateTitle,
+      roastOfTheWeek,
       competitors: competitorList,
       awards,
       weeklyVictim,
@@ -249,79 +253,83 @@ export class LeagueService {
     if (competitors.length === 0) return [];
     const awards: LeagueAward[] = [];
 
-    // 1. Weekly Champion
-    const champion = competitors[0];
-    if (champion && champion.totalActiveSeconds > 0) {
-      awards.push({
-        id: "champion",
-        title: "Weekly Champion",
-        icon: "🏆",
-        recipientName: champion.displayName,
-        recipientUsername: champion.username,
-        statDescription: `${champion.formattedDuration} total observed`,
-        badge: champion.title,
-      });
-    }
-
-    // 2. Session King
-    const sessionKing = [...competitors].sort(
+    // 1. Session King (Longest Continuous Sitting)
+    const longestSessionComp = [...competitors].sort(
       (a, b) => b.longestSessionSeconds - a.longestSessionSeconds
     )[0];
-    if (sessionKing && sessionKing.longestSessionSeconds > 0) {
+    if (longestSessionComp && longestSessionComp.longestSessionSeconds > 1800) {
       awards.push({
-        id: "session_king",
-        title: "Session King",
-        icon: "⏱",
-        recipientName: sessionKing.displayName,
-        recipientUsername: sessionKing.username,
-        statDescription: `${sessionKing.formattedLongestSession} continuous session`,
-        badge: "🪑 The Chair Resident",
+        id: "award_session_king",
+        title: "Chair Resident",
+        icon: "🪑",
+        recipientName: longestSessionComp.displayName,
+        recipientUsername: longestSessionComp.username,
+        statDescription: `${longestSessionComp.formattedLongestSession} continuous session`,
+        badge: "🪑 Longest Sitting",
       });
     }
 
-    // 3. Serial Checker
-    const serialChecker = [...competitors].sort(
+    // 2. Serial Checker (Most Sessions)
+    const mostSessionsComp = [...competitors].sort(
       (a, b) => b.sessionCount - a.sessionCount
     )[0];
-    if (serialChecker && serialChecker.sessionCount > 0) {
+    if (mostSessionsComp && mostSessionsComp.sessionCount >= 10) {
       awards.push({
-        id: "serial_checker",
+        id: "award_serial_checker",
         title: "Serial Checker",
-        icon: "🔁",
-        recipientName: serialChecker.displayName,
-        recipientUsername: serialChecker.username,
-        statDescription: `${serialChecker.sessionCount} separate sessions`,
-        badge: "🚪 Door → Telegram",
+        icon: "🔄",
+        recipientName: mostSessionsComp.displayName,
+        recipientUsername: mostSessionsComp.username,
+        statDescription: `${mostSessionsComp.sessionCount} app openings this week`,
+        badge: "🚪 Door Knocker",
       });
     }
 
-    // 4. Night Owl
-    const nightOwl = [...competitors].sort(
+    // 3. Night Owl (22:00 - 05:00)
+    const nightComp = [...competitors].sort(
       (a, b) => b.nightActivitySeconds - a.nightActivitySeconds
     )[0];
-    if (nightOwl && nightOwl.nightActivitySeconds > 3600) {
+    if (nightComp && nightComp.nightActivitySeconds > 1800) {
       awards.push({
-        id: "night_owl",
-        title: "Night Owl",
+        id: "award_night_owl",
+        title: "Lord of the Last Seen",
         icon: "🌙",
-        recipientName: nightOwl.displayName,
-        recipientUsername: nightOwl.username,
-        statDescription: `${formatDuration(nightOwl.nightActivitySeconds)} after 22:00`,
-        badge: "Lord of the Night Shift",
+        recipientName: nightComp.displayName,
+        recipientUsername: nightComp.username,
+        statDescription: `${formatDuration(nightComp.nightActivitySeconds)} logged after dark`,
+        badge: "🦉 Night Shift",
       });
     }
 
-    // 5. Ghost Award
-    const ghost = competitors[competitors.length - 1];
-    if (ghost && competitors.length > 1) {
+    // 4. Early Bird (05:00 - 09:00)
+    const earlyComp = [...competitors].sort(
+      (a, b) => b.morningActivitySeconds - a.morningActivitySeconds
+    )[0];
+    if (earlyComp && earlyComp.morningActivitySeconds > 1800) {
       awards.push({
-        id: "ghost_award",
-        title: "Ghost Award",
-        icon: "🫥",
-        recipientName: ghost.displayName,
-        recipientUsername: ghost.username,
-        statDescription: `Only ${ghost.formattedDuration} observed`,
-        badge: "🌱 Touched Grass",
+        id: "award_early_bird",
+        title: "5AM Prophet",
+        icon: "🌅",
+        recipientName: earlyComp.displayName,
+        recipientUsername: earlyComp.username,
+        statDescription: `${formatDuration(earlyComp.morningActivitySeconds)} active before 9AM`,
+        badge: "☀️ Dawn Patrol",
+      });
+    }
+
+    // 5. Grass Toucher (The Ghost)
+    const ghostComp = [...competitors].sort(
+      (a, b) => a.totalActiveSeconds - b.totalActiveSeconds
+    )[0];
+    if (ghostComp && ghostComp.totalActiveSeconds < 7200) {
+      awards.push({
+        id: "award_ghost",
+        title: "Telegram Ghost",
+        icon: "🌱",
+        recipientName: ghostComp.displayName,
+        recipientUsername: ghostComp.username,
+        statDescription: `Only ${ghostComp.formattedDuration} this week (Healthy human)`,
+        badge: "🌿 Touched Grass",
       });
     }
 
@@ -329,48 +337,47 @@ export class LeagueService {
   }
 
   /**
-   * Head-to-Head Rival tracker
+   * Head-to-Head Rival Status Tracker
    */
-  static async getRivalStatus(
-    userId: string,
-    rivalAccountId?: string
-  ): Promise<RivalComparison | null> {
+  static async getRivalStatus(userId: string, overrideRivalAccountId?: string): Promise<RivalComparison | null> {
     const leaderboard = await this.getWeeklyLeaderboard(userId);
     if (leaderboard.competitors.length < 2) return null;
 
-    const userAccount = leaderboard.competitors[0];
-    let targetRivalId = rivalAccountId;
+    const [rivalRow] = await db
+      .select()
+      .from(userRivals)
+      .where(eq(userRivals.userId, userId))
+      .limit(1);
 
-    if (!targetRivalId) {
-      const savedRival = await db
-        .select()
-        .from(userRivals)
-        .where(eq(userRivals.userId, userId))
-        .limit(1);
-      if (savedRival.length > 0) {
-        targetRivalId = savedRival[0].rivalAccountId;
-      }
+    let userAcc = leaderboard.competitors.find((c) => c.label === "Myself") || leaderboard.competitors[0];
+    let rivalAcc: LeagueCompetitor | undefined;
+
+    const targetRivalId = overrideRivalAccountId || rivalRow?.rivalAccountId;
+    if (targetRivalId) {
+      rivalAcc = leaderboard.competitors.find((c) => c.accountId === targetRivalId);
     }
 
-    const rivalAccount = targetRivalId
-      ? leaderboard.competitors.find((c) => c.accountId === targetRivalId) || leaderboard.competitors[1]
-      : leaderboard.competitors[1];
+    if (!rivalAcc) {
+      rivalAcc = leaderboard.competitors.find((c) => c.accountId !== userAcc.accountId) || leaderboard.competitors[1];
+    }
 
-    if (!userAccount || !rivalAccount) return null;
+    if (!rivalAcc) return null;
 
-    const diffSeconds = userAccount.totalActiveSeconds - rivalAccount.totalActiveSeconds;
-    const isUserLeading = diffSeconds >= 0;
-    const gapSeconds = Math.abs(diffSeconds);
-    const formattedGap = formatDuration(gapSeconds);
+    const gap = userAcc.totalActiveSeconds - rivalAcc.totalActiveSeconds;
+    const isUserLeading = gap >= 0;
+    const formattedGap = formatDuration(Math.abs(gap));
 
-    const statusMessage = isUserLeading
-      ? `👑 You are leading @${rivalAccount.username || rivalAccount.displayName} by ${formattedGap}. Defend the throne!`
-      : `😈 You are losing to @${rivalAccount.username || rivalAccount.displayName} by ${formattedGap}. The crown is slipping!`;
+    let statusMessage = "";
+    if (isUserLeading) {
+      statusMessage = `👑 You are leading @${rivalAcc.username || rivalAcc.displayName} by ${formattedGap}. Defend the throne!`;
+    } else {
+      statusMessage = `💀 @${rivalAcc.username || rivalAcc.displayName} is ahead by ${formattedGap}. Start scrolling to close the gap!`;
+    }
 
     return {
-      userAccount,
-      rivalAccount,
-      gapSeconds,
+      userAccount: userAcc,
+      rivalAccount: rivalAcc,
+      gapSeconds: Math.abs(gap),
       formattedGap,
       isUserLeading,
       statusMessage,
@@ -378,56 +385,40 @@ export class LeagueService {
   }
 
   /**
-   * Designate a specific rival account
+   * Set designated rival account
    */
   static async setRival(userId: string, rivalAccountId: string) {
-    const [rival] = await db
-      .insert(userRivals)
-      .values({
+    const [existing] = await db
+      .select()
+      .from(userRivals)
+      .where(eq(userRivals.userId, userId))
+      .limit(1);
+
+    if (existing) {
+      await db
+        .update(userRivals)
+        .set({ rivalAccountId, updatedAt: new Date() })
+        .where(eq(userRivals.userId, userId));
+    } else {
+      await db.insert(userRivals).values({
         userId,
         rivalAccountId,
-      })
-      .onConflictDoUpdate({
-        target: userRivals.userId,
-        set: {
-          rivalAccountId,
-          updatedAt: new Date(),
-        },
-      })
-      .returning();
-
-    return rival;
+      });
+    }
   }
 
   /**
-   * Midweek Prediction
+   * Midweek pace projection
    */
-  static async getMidweekPrediction(userId: string): Promise<{
-    leader: LeagueCompetitor | null;
-    runnerUp: LeagueCompetitor | null;
-    projectedLeaderTotal: string;
-    projectedRunnerUpTotal: string;
-    predictionMessage: string;
-  } | null> {
+  static async getMidweekPrediction(userId: string): Promise<string> {
     const leaderboard = await this.getWeeklyLeaderboard(userId);
-    if (leaderboard.competitors.length === 0) return null;
+    if (leaderboard.competitors.length === 0) return "No active competitors.";
 
     const leader = leaderboard.competitors[0];
-    const runnerUp = leaderboard.competitors[1] || null;
+    const hours = leader.totalActiveSeconds / 3600;
+    const projectedHours = Math.round((hours / Math.max(1, new Date().getDay() || 7)) * 7);
 
-    const dayOfWeek = new Date().getDay() || 7;
-    const multiplier = 7 / Math.max(1, dayOfWeek);
-
-    const projectedLeaderSecs = Math.round(leader.totalActiveSeconds * multiplier);
-    const projectedRunnerSecs = runnerUp ? Math.round(runnerUp.totalActiveSeconds * multiplier) : 0;
-
-    return {
-      leader,
-      runnerUp,
-      projectedLeaderTotal: formatDuration(projectedLeaderSecs),
-      projectedRunnerUpTotal: formatDuration(projectedRunnerSecs),
-      predictionMessage: `🔮 Projected Weekly Champion: @${leader.username || leader.displayName} (~${formatDuration(projectedLeaderSecs)})`,
-    };
+    return `🔮 Pace Projection: ${leader.displayName} is tracking for ~${projectedHours}h by Sunday.`;
   }
 
   private static getWeekNumber(d: Date): number {
@@ -437,22 +428,12 @@ export class LeagueService {
     return Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
   }
 
-  private static getTodayDateString(timezone: string): string {
-    return new Intl.DateTimeFormat("en-CA", {
-      timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date());
+  private static getTodayDateString(timezone: string = "UTC"): string {
+    return new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(new Date());
   }
 
-  private static getPastDateString(daysAgo: number, timezone: string): string {
-    const target = new Date(Date.now() - daysAgo * 24 * 3600 * 1000);
-    return new Intl.DateTimeFormat("en-CA", {
-      timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(target);
+  private static getPastDateString(daysAgo: number, timezone: string = "UTC"): string {
+    const d = new Date(Date.now() - daysAgo * 24 * 3600 * 1000);
+    return new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(d);
   }
 }

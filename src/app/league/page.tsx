@@ -16,20 +16,24 @@ import {
   ChevronRight,
   ShieldAlert,
   Zap,
+  Share2,
+  Check,
 } from "lucide-react";
 
 export default function LeaguePage() {
   const { user, hapticFeedback } = useTelegram();
-  const [activeTab, setActiveTab] = useState<"leaderboard" | "rival" | "awards" | "hall">("leaderboard");
+  const [activeTab, setActiveTab] = useState<"leaderboard" | "rival" | "awards">("leaderboard");
   const [leaderboardData, setLeaderboardData] = useState<{
     weekNumber: number;
+    triumvirateTitle?: string;
+    roastOfTheWeek?: string;
     competitors: LeagueCompetitor[];
     awards: LeagueAward[];
     weeklyVictim: LeagueCompetitor | null;
-    prediction?: any;
   } | null>(null);
   const [rivalData, setRivalData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [copiedRoast, setCopiedRoast] = useState(false);
 
   const fetchLeague = async () => {
     if (!user) return;
@@ -59,6 +63,13 @@ export default function LeaguePage() {
     fetchLeague();
   }, [user]);
 
+  const copyRoast = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedRoast(true);
+    hapticFeedback("medium");
+    setTimeout(() => setCopiedRoast(false), 2000);
+  };
+
   if (isLoading || !leaderboardData) {
     return (
       <div className="space-y-4 pt-4 animate-pulse">
@@ -81,7 +92,7 @@ export default function LeaguePage() {
             🏆 Telegram League
           </h1>
           <p className="text-xs text-slate-400 font-medium">
-            Week {leaderboardData.weekNumber} Championship
+            Week {leaderboardData.weekNumber} Championship • {leaderboardData.triumvirateTitle || "The Blue Council"}
           </p>
         </div>
 
@@ -152,6 +163,27 @@ export default function LeaguePage() {
           {/* TAB 1: LEADERBOARD */}
           {activeTab === "leaderboard" && (
             <div className="space-y-3">
+              {/* Roast of the Week Card */}
+              {leaderboardData.roastOfTheWeek && (
+                <div className="p-4 bg-gradient-to-br from-rose-950/70 via-slate-900/90 to-amber-950/60 border border-rose-800/50 rounded-2xl relative overflow-hidden shadow-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-black uppercase tracking-wider text-rose-400 flex items-center gap-1">
+                      <Flame className="w-3.5 h-3.5" /> Legendary Roast of the Week
+                    </span>
+                    <button
+                      onClick={() => copyRoast(leaderboardData.roastOfTheWeek!)}
+                      className="text-xs text-slate-400 hover:text-white flex items-center gap-1 bg-slate-800/80 px-2 py-1 rounded-lg"
+                    >
+                      {copiedRoast ? <Check className="w-3 h-3 text-emerald-400" /> : <Share2 className="w-3 h-3" />}
+                      <span className="text-[10px] font-bold">{copiedRoast ? "Copied" : "Share"}</span>
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-200 leading-relaxed font-medium whitespace-pre-line">
+                    {leaderboardData.roastOfTheWeek}
+                  </p>
+                </div>
+              )}
+
               {/* Crown Banner */}
               {competitors.length > 1 && (
                 <div className="p-3 bg-gradient-to-r from-blue-950/80 to-indigo-950/80 border border-blue-800/60 rounded-2xl flex items-center justify-between text-xs">
@@ -178,164 +210,155 @@ export default function LeaguePage() {
               <div className="space-y-2.5">
                 {competitors.map((c, idx) => {
                   const isFirst = idx === 0;
+
                   return (
                     <div
                       key={c.accountId}
                       className={`p-3.5 rounded-2xl border transition-all ${
                         isFirst
-                          ? "bg-slate-900/90 border-amber-500/50 shadow-md shadow-amber-500/10"
-                          : "bg-slate-900/60 border-slate-800/80"
+                          ? "bg-slate-900/90 border-amber-500/50 shadow-md shadow-amber-950/20"
+                          : "bg-slate-900/60 border-slate-800/80 hover:border-slate-700"
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg font-black">
-                            {medals[idx] || `${idx + 1}.`}
-                          </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{medals[idx] || "•"}</span>
                           <div>
-                            <div className="text-xs font-black text-slate-100 flex items-center gap-1.5">
-                              <span>{c.displayName}</span>
-                              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">
-                                {c.tier.icon} {c.tier.name}
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-sm font-bold text-slate-100">
+                                {c.displayName}
                               </span>
+                              {isFirst && (
+                                <span className="text-[10px] font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-md border border-amber-500/30">
+                                  Leader
+                                </span>
+                              )}
                             </div>
-                            <div className="text-[11px] text-amber-300 font-medium mt-0.5">
+                            <span className="text-xs text-blue-400 font-semibold block mt-0.5">
                               {c.title}
-                            </div>
+                            </span>
                           </div>
                         </div>
 
                         <div className="text-right">
-                          <span className="text-sm font-black text-blue-400">
+                          <span className="text-sm font-black text-slate-100 block">
                             {c.formattedDuration}
                           </span>
-                          <div className="text-[10px] text-slate-400">
+                          <span className="text-[11px] text-slate-400">
                             {c.sessionCount} sessions
-                          </div>
+                          </span>
                         </div>
                       </div>
 
-                      {/* Longest Session & Distance Bar */}
-                      <div className="pt-2 mt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+                      {/* Stat bar */}
+                      <div className="mt-3 pt-2.5 border-t border-slate-800/50 flex items-center justify-between text-[11px] text-slate-400">
                         <span>
-                          Longest Session:{" "}
+                          Longest sitting:{" "}
                           <strong className="text-slate-200">
                             {c.formattedLongestSession}
                           </strong>
                         </span>
-                        {!isFirst && (
-                          <span className="text-rose-400 font-medium">
-                            -{c.formattedGapToLeader} to crown
-                          </span>
-                        )}
-                        {isFirst && (
-                          <span className="text-emerald-400 font-bold flex items-center gap-1">
-                            <Crown className="w-3 h-3" /> Defending #1
-                          </span>
-                        )}
+                        <span className="flex items-center gap-1">
+                          <span>{c.tier.icon}</span> {c.tier.name}
+                        </span>
                       </div>
                     </div>
                   );
                 })}
               </div>
-
-              {/* Midweek Prediction Card */}
-              {leaderboardData.prediction && (
-                <div className="p-3.5 bg-slate-900/60 border border-slate-800/80 rounded-2xl flex items-start gap-2.5 text-xs text-slate-300">
-                  <Sparkles className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                  <div>
-                    <strong className="text-purple-300 font-bold block">
-                      Midweek Prophecy
-                    </strong>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      {leaderboardData.prediction.predictionMessage}
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {/* TAB 2: THE RIVAL */}
+          {/* TAB 2: RIVAL SHOWDOWN */}
           {activeTab === "rival" && (
             <div className="space-y-4">
-              {!rivalData ? (
-                <EmptyState
-                  icon={Swords}
-                  title="Need at least 2 accounts"
-                  description="Add a second account to unlock head-to-head rivalry mode!"
-                />
-              ) : (
-                <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-4 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div className="text-center flex-1">
-                      <span className="text-lg">👑</span>
-                      <div className="text-xs font-black text-slate-100 mt-1">
+              {rivalData ? (
+                <div className="p-4 bg-slate-900/80 border border-slate-800 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                      <Swords className="w-4 h-4 text-rose-400" /> Head-to-Head Showdown
+                    </span>
+                    <span className="text-xs font-black px-2 py-0.5 bg-rose-950 text-rose-300 border border-rose-800/50 rounded-lg">
+                      Rivalry Mode
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 text-center">
+                    <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                      <span className="text-xs text-slate-400 block mb-1">
                         {rivalData.userAccount?.displayName}
-                      </div>
-                      <div className="text-sm font-black text-blue-400">
-                        {rivalData.userAccount?.formattedDuration}
-                      </div>
-                    </div>
-
-                    <div className="px-3 text-center">
-                      <span className="text-xs font-black text-rose-500 uppercase">
-                        VS
                       </span>
-                      <div className="text-[10px] text-slate-400 font-medium">
-                        {rivalData.formattedGap} gap
-                      </div>
+                      <span className="text-base font-black text-blue-400">
+                        {rivalData.userAccount?.formattedDuration}
+                      </span>
                     </div>
 
-                    <div className="text-center flex-1">
-                      <span className="text-lg">😈</span>
-                      <div className="text-xs font-black text-slate-100 mt-1">
+                    <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                      <span className="text-xs text-slate-400 block mb-1">
                         {rivalData.rivalAccount?.displayName}
-                      </div>
-                      <div className="text-sm font-black text-emerald-400">
+                      </span>
+                      <span className="text-base font-black text-rose-400">
                         {rivalData.rivalAccount?.formattedDuration}
-                      </div>
+                      </span>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-slate-950/60 rounded-xl text-center text-xs font-semibold text-amber-300 border border-amber-900/40">
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/60 text-xs font-semibold text-center text-slate-200">
                     {rivalData.statusMessage}
                   </div>
                 </div>
+              ) : (
+                <EmptyState
+                  icon={Swords}
+                  title="No Rival Designated"
+                  description="Enroll at least 2 competitors to unlock live Head-to-Head score gap battles!"
+                  actionText="+ Add Another Account"
+                  onAction={() => {
+                    window.location.href = "/accounts";
+                  }}
+                />
               )}
             </div>
           )}
 
-          {/* TAB 3: MINI-AWARDS */}
+          {/* TAB 3: MINI AWARDS */}
           {activeTab === "awards" && (
-            <div className="grid grid-cols-1 gap-2.5">
-              {leaderboardData.awards.map((a) => (
-                <div
-                  key={a.id}
-                  className="p-3.5 bg-slate-900/70 border border-slate-800/80 rounded-2xl flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl p-2 rounded-xl bg-slate-800/70">
-                      {a.icon}
-                    </span>
-                    <div>
-                      <span className="text-xs font-black text-slate-100 block">
-                        {a.title}
+            <div className="space-y-3">
+              {leaderboardData.awards.length === 0 ? (
+                <EmptyState
+                  icon={Medal}
+                  title="Awards Calculating"
+                  description="Awards are updated as sessions accumulate throughout the week!"
+                />
+              ) : (
+                leaderboardData.awards.map((award) => (
+                  <div
+                    key={award.id}
+                    className="p-3.5 bg-slate-900/60 border border-slate-800 rounded-2xl flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{award.icon}</span>
+                      <div>
+                        <span className="text-sm font-bold text-slate-100 block">
+                          {award.title}
+                        </span>
+                        <span className="text-xs text-slate-400">
+                          {award.statDescription}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-xs font-bold text-slate-200 block">
+                        {award.recipientName}
                       </span>
-                      <span className="text-[11px] text-slate-400 font-medium">
-                        Winner: <strong className="text-blue-400">{a.recipientName}</strong>
-                      </span>
-                      <span className="text-[10px] text-slate-400 block mt-0.5">
-                        {a.statDescription}
+                      <span className="text-[10px] font-black uppercase tracking-wider text-blue-400 bg-blue-950/80 px-2 py-0.5 rounded-md border border-blue-900">
+                        {award.badge}
                       </span>
                     </div>
                   </div>
-
-                  <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/60 text-amber-300 border border-amber-800/60 rounded-xl">
-                    {a.badge}
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           )}
         </>
