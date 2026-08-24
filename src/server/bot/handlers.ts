@@ -13,8 +13,8 @@ import { logger } from "@/lib/logger";
 const userSessionState = new Map<number, { state: string; data?: any }>();
 
 export function registerBotHandlers(bot: Bot) {
-  // 1. /start command — Sends welcome with persistent reply keyboard & inline menu
-  bot.command("start", async (ctx) => {
+  // 1. /start & /menu command — Interactive Choice Hub
+  const sendWelcomeChoiceHub = async (ctx: Context) => {
     const tgUser = ctx.from;
     if (!tgUser) return;
 
@@ -29,23 +29,31 @@ export function registerBotHandlers(bot: Bot) {
     userSessionState.delete(tgUser.id);
 
     const welcomeText =
-      `🏆 *Welcome to Telegram League*\n` +
+      `🏆 *TELEGRAM LEAGUE — CHOICE HUB*\n` +
       `_Track. Compete. Get Roasted._\n\n` +
-      `Choose an option below to enter the weekly tournament, inspect your chat footprint, or get roasted by your actual presence numbers.\n\n` +
-      `• *Mode A (My Telegram)*: Deep personal presence & observed chat footprint.\n` +
-      `• *Mode B (Telegram League)*: 3-competitor weekly tournament.\n\n` +
-      `Use the quick navigation buttons below or the inline menu:`;
+      `Welcome, *${tgUser.first_name || "Competitor"}*! Choose an action below:\n\n` +
+      `1️⃣ *Weekly League Standings* — Ranks, medals & gap to crown\n` +
+      `2️⃣ *My Stats & Footprint* — Personal presence & active chats\n` +
+      `3️⃣ *Roast Me* — Select intensity (Friendly, Normal, Brutal, Nuclear)\n` +
+      `4️⃣ *The Rival* — Head-to-head live score gap & rivalry\n` +
+      `5️⃣ *Mini-Awards* — Superlative shelf (Session King, Night Owl, etc.)\n` +
+      `6️⃣ *Competitor Slots* — Manage your 3 tracked accounts\n` +
+      `7️⃣ *Help & Rules* — Privacy policy & tournament rules\n\n` +
+      `👇 _Tap a numbered button below to proceed:_`;
 
     await ctx.reply(welcomeText, {
       parse_mode: "Markdown",
       reply_markup: BotMenus.mainMenu(),
     });
 
-    // Also send the persistent reply keyboard
-    await ctx.reply(`🕹 *Quick Navigation Ready:*`, {
+    // Also activate the bottom persistent reply keyboard
+    await ctx.reply(`🕹 *1-Tap Quick Navigation Active:*`, {
       reply_markup: BotMenus.persistentReplyKeyboard(),
     });
-  });
+  };
+
+  bot.command("start", sendWelcomeChoiceHub);
+  bot.command("menu", sendWelcomeChoiceHub);
 
   // 2. /my command
   bot.command("my", async (ctx) => {
@@ -102,26 +110,7 @@ export function registerBotHandlers(bot: Bot) {
 
   // 11. /help command
   bot.command("help", async (ctx) => {
-    const text =
-      `🏆 *Telegram League Rules & Guidance*\n\n` +
-      `• *Weekly League*: Compete with 3 accounts in weekly presence tournaments.\n` +
-      `• *The Rival*: Designate 1 account as your rival for live score gap alerts.\n` +
-      `• *Roast Me*: Deterministic roasts across 4 levels (Friendly, Normal, Brutal, Nuclear).\n` +
-      `• *Observed Footprint*: Aggregates chat & community presence where authorized.\n\n` +
-      `*Commands:*\n` +
-      `/start - Main menu\n` +
-      `/my - My stats & footprint\n` +
-      `/league - Current standings\n` +
-      `/roast - Roast selector\n` +
-      `/rival - Rival showdown\n` +
-      `/footprint - Community activity\n` +
-      `/awards - Weekly superlatives\n` +
-      `/track - Add competitor`;
-
-    await ctx.reply(text, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.backToMain(),
-    });
+    await sendHelpScreen(ctx);
   });
 
   // Callback query dispatcher
@@ -138,9 +127,9 @@ export function registerBotHandlers(bot: Bot) {
       if (data === "action:home") {
         userSessionState.delete(tgUser.id);
         const text =
-          `🏆 *Telegram League Arena*\n` +
+          `🏆 *TELEGRAM LEAGUE — CHOICE HUB*\n` +
           `_Track. Compete. Get Roasted._\n\n` +
-          `Select an option below to enter the competition or open the Mini App:`;
+          `Choose an action to proceed:`;
         await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), true);
       } else if (data === "action:my") {
         await sendMyTelegramScreen(ctx, true);
@@ -170,6 +159,8 @@ export function registerBotHandlers(bot: Bot) {
         await sendAwardsScreen(ctx, true);
       } else if (data === "action:dashboard") {
         await sendDashboardScreen(ctx, true);
+      } else if (data === "action:help") {
+        await sendHelpScreen(ctx, true);
       } else if (data === "action:track") {
         userSessionState.set(tgUser.id, { state: "AWAITING_USERNAME" });
         await safeSendOrEdit(
@@ -265,7 +256,7 @@ export function registerBotHandlers(bot: Bot) {
     const text = ctx.message.text.trim();
 
     // 1. Check persistent keyboard triggers
-    if (text === "🏆 Telegram League") return sendLeagueScreen(ctx);
+    if (text === "🏆 Weekly League" || text === "🏆 Telegram League") return sendLeagueScreen(ctx);
     if (text === "👤 My Stats") return sendMyTelegramScreen(ctx);
     if (text === "🔥 Roast Me") return sendRoastPickerScreen(ctx);
     if (text === "⚔️ The Rival") return sendRivalPickerScreen(ctx);
@@ -280,7 +271,7 @@ export function registerBotHandlers(bot: Bot) {
         { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
       );
     }
-    if (text === "⚙️ Settings") return sendDashboardScreen(ctx);
+    if (text === "⚙️ Main Menu" || text === "⚙️ Settings") return sendWelcomeChoiceHub(ctx);
 
     // 2. Check pending input state
     const userState = userSessionState.get(tgUser.id);
@@ -582,6 +573,26 @@ async function sendAccountsScreen(ctx: Context, edit: boolean = false) {
       : `Select a competitor to view session history, set as rival, or generate a roast:`);
 
   await safeSendOrEdit(ctx, text, BotMenus.accountsListMenu(accounts), edit);
+}
+
+async function sendHelpScreen(ctx: Context, edit: boolean = false) {
+  const text =
+    `📖 *Telegram League Rules & Guidance*\n\n` +
+    `• *Weekly League*: Compete with 3 accounts in weekly presence tournaments.\n` +
+    `• *The Rival*: Designate 1 account as your rival for live score gap alerts.\n` +
+    `• *Roast Me*: Deterministic roasts across 4 levels (Friendly, Normal, Brutal, Nuclear).\n` +
+    `• *Observed Footprint*: Aggregates chat & community presence where authorized.\n\n` +
+    `*Commands:*\n` +
+    `/start or /menu - Choice Hub\n` +
+    `/my - My stats & footprint\n` +
+    `/league - Current standings\n` +
+    `/roast - Roast selector\n` +
+    `/rival - Rival showdown\n` +
+    `/footprint - Community activity\n` +
+    `/awards - Weekly superlatives\n` +
+    `/track - Add competitor`;
+
+  await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
 }
 
 async function sendAccountDetailScreen(ctx: Context, accountId: string, edit: boolean = false) {

@@ -15,32 +15,34 @@ export class BotMenus {
    */
   static persistentReplyKeyboard() {
     return new Keyboard()
-      .text("🏆 Telegram League").text("👤 My Stats").row()
+      .text("🏆 Weekly League").text("👤 My Stats").row()
       .text("🔥 Roast Me").text("⚔️ The Rival").row()
       .text("🕵️ Chat Footprint").text("🎖 Mini-Awards").row()
-      .text("➕ Add Competitor").text("⚙️ Settings").row()
+      .text("➕ Add Competitor").text("⚙️ Main Menu").row()
       .resized();
   }
 
   /**
-   * Main welcome / dashboard inline keyboard
+   * Main welcome / choice hub inline keyboard
    */
   static mainMenu() {
     const webAppUrl = env.NEXT_PUBLIC_APP_URL;
     return new InlineKeyboard()
-      .webApp("🏆 Open Telegram League Mini App", webAppUrl)
+      .webApp("🚀 Launch Full Mini App Dashboard", webAppUrl)
       .row()
-      .text("🏆 Weekly League", "action:league")
-      .text("👤 My Stats", "action:my")
+      .text("1️⃣ 🏆 Weekly League Ranks", "action:league")
       .row()
-      .text("🔥 Roast Me", "action:roast_picker")
-      .text("⚔️ The Rival", "action:rival_picker")
+      .text("2️⃣ 👤 My Stats & Footprint", "action:my")
       .row()
-      .text("🕵️ Chat Footprint", "action:footprint")
-      .text("🎖 Mini-Awards", "action:awards")
+      .text("3️⃣ 🔥 Roast Me (Choose Level)", "action:roast_picker")
       .row()
-      .text("👤 Competitor Slots", "action:accounts")
-      .text("⚙️ Settings", "action:settings");
+      .text("4️⃣ ⚔️ Head-to-Head Rival", "action:rival_picker")
+      .row()
+      .text("5️⃣ 🎖 Weekly Mini-Awards", "action:awards")
+      .row()
+      .text("6️⃣ ➕ Manage Competitors (3 Slots)", "action:accounts")
+      .row()
+      .text("7️⃣ 📖 Help & Game Rules", "action:help");
   }
 
   /**
@@ -59,7 +61,7 @@ export class BotMenus {
         const accId = acc.accountId || acc.id || "";
         const name = acc.displayName || (acc.username ? `@${acc.username}` : "Account");
         const isSelected = selectedAccountId === accId;
-        kb.text(isSelected ? `● ${name}` : name, `action:select_roast_acc:${accId}`).row();
+        kb.text(isSelected ? `● Target: ${name}` : `Target: ${name}`, `action:select_roast_acc:${accId}`).row();
       }
     }
 
@@ -89,7 +91,7 @@ export class BotMenus {
       const name = acc.displayName || (acc.username ? `@${acc.username}` : "Account");
       const isRival = currentRivalId === accId;
       kb.text(
-        isRival ? `👑 Current Rival: ${name}` : `⚔️ Challenge ${name}`,
+        isRival ? `👑 Designated Rival: ${name}` : `⚔️ Challenge ${name}`,
         `action:set_rival:${accId}`
       ).row();
     }
@@ -103,13 +105,13 @@ export class BotMenus {
    */
   static leagueMenu() {
     return new InlineKeyboard()
-      .text("🔥 Roast Current Leader", "action:roast_picker")
-      .text("⚔️ Rival Showdown", "action:rival")
+      .text("🔥 Roast #1 Leader", "action:roast_picker")
+      .text("⚔️ Rival Battle", "action:rival_picker")
       .row()
       .text("🎖 Mini-Awards", "action:awards")
       .text("🔄 Refresh Standings", "action:league")
       .row()
-      .text("« Back to Main Menu", "action:home");
+      .text("« Back to Menu", "action:home");
   }
 
   /**
@@ -135,7 +137,7 @@ export class BotMenus {
   static accountMenu(accountId: string, isTrackingActive: boolean) {
     const kb = new InlineKeyboard()
       .text("📊 Overview", `action:acc_overview:${accountId}`)
-      .text("🔥 Roast This Account", `action:select_roast_acc:${accountId}`)
+      .text("🔥 Roast Account", `action:select_roast_acc:${accountId}`)
       .row()
       .text("⚔️ Set as My Rival", `action:set_rival:${accountId}`)
       .row();
