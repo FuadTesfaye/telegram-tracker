@@ -5,6 +5,7 @@ import { AccountService } from "../services/account.service";
 import { AnalyticsService } from "../services/analytics.service";
 import { LeagueService } from "../services/league.service";
 import { FootprintService } from "../services/footprint.service";
+import { RoastEngineService, type RoastLevel } from "../services/roast-engine.service";
 import { BotMenus } from "./menus";
 import { formatDuration, normalizeUsername } from "@/lib/utils";
 import { logger } from "@/lib/logger";
@@ -12,7 +13,7 @@ import { logger } from "@/lib/logger";
 const userSessionState = new Map<number, { state: string; data?: any }>();
 
 export function registerBotHandlers(bot: Bot) {
-  // 1. /start command
+  // 1. /start command — Sends welcome with persistent reply keyboard & inline menu
   bot.command("start", async (ctx) => {
     const tgUser = ctx.from;
     if (!tgUser) return;
@@ -30,15 +31,19 @@ export function registerBotHandlers(bot: Bot) {
     const welcomeText =
       `🏆 *Welcome to Telegram League*\n` +
       `_Track. Compete. Get Roasted._\n\n` +
-      `Rank your tracked accounts in weekly presence tournaments, unlock ridiculous titles, fight your Rival, and get roasted by actual numbers.\n\n` +
+      `Choose an option below to enter the weekly tournament, inspect your chat footprint, or get roasted by your actual presence numbers.\n\n` +
       `• *Mode A (My Telegram)*: Deep personal presence & observed chat footprint.\n` +
       `• *Mode B (Telegram League)*: 3-competitor weekly tournament.\n\n` +
-      `⚠️ *Privacy Notice:*\n` +
-      `Rankings & footprints are derived solely from observable presence signals and chats with legitimate visibility. Message texts are never stored.`;
+      `Use the quick navigation buttons below or the inline menu:`;
 
     await ctx.reply(welcomeText, {
       parse_mode: "Markdown",
       reply_markup: BotMenus.mainMenu(),
+    });
+
+    // Also send the persistent reply keyboard
+    await ctx.reply(`🕹 *Quick Navigation Ready:*`, {
+      reply_markup: BotMenus.persistentReplyKeyboard(),
     });
   });
 
@@ -54,12 +59,12 @@ export function registerBotHandlers(bot: Bot) {
 
   // 4. /roast command
   bot.command("roast", async (ctx) => {
-    await sendRoastScreen(ctx);
+    await sendRoastPickerScreen(ctx);
   });
 
   // 5. /rival command
   bot.command("rival", async (ctx) => {
-    await sendRivalScreen(ctx);
+    await sendRivalPickerScreen(ctx);
   });
 
   // 6. /footprint command
@@ -83,9 +88,9 @@ export function registerBotHandlers(bot: Bot) {
       userSessionState.set(ctx.from.id, { state: "AWAITING_USERNAME" });
     }
     await ctx.reply(
-      `➕ *Track a Telegram Account*\n\n` +
+      `➕ *Track a Telegram Competitor*\n\n` +
       `Send the public Telegram username to add to your competition (up to 3 slots):\n\n` +
-      `_Example:_ \`@fuadtesfaye\` or \`https://t.me/fuadtesfaye\``,
+      `_Example:_ \`@fuadtesfaye\` or \`@username\``,
       { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
     );
   });
@@ -93,6 +98,30 @@ export function registerBotHandlers(bot: Bot) {
   // 10. /accounts command
   bot.command("accounts", async (ctx) => {
     await sendAccountsScreen(ctx);
+  });
+
+  // 11. /help command
+  bot.command("help", async (ctx) => {
+    const text =
+      `🏆 *Telegram League Rules & Guidance*\n\n` +
+      `• *Weekly League*: Compete with 3 accounts in weekly presence tournaments.\n` +
+      `• *The Rival*: Designate 1 account as your rival for live score gap alerts.\n` +
+      `• *Roast Me*: Deterministic roasts across 4 levels (Friendly, Normal, Brutal, Nuclear).\n` +
+      `• *Observed Footprint*: Aggregates chat & community presence where authorized.\n\n` +
+      `*Commands:*\n` +
+      `/start - Main menu\n` +
+      `/my - My stats & footprint\n` +
+      `/league - Current standings\n` +
+      `/roast - Roast selector\n` +
+      `/rival - Rival showdown\n` +
+      `/footprint - Community activity\n` +
+      `/awards - Weekly superlatives\n` +
+      `/track - Add competitor`;
+
+    await ctx.reply(text, {
+      parse_mode: "Markdown",
+      reply_markup: BotMenus.backToMain(),
+    });
   });
 
   // Callback query dispatcher
@@ -117,9 +146,23 @@ export function registerBotHandlers(bot: Bot) {
         await sendMyTelegramScreen(ctx, true);
       } else if (data === "action:league") {
         await sendLeagueScreen(ctx, true);
-      } else if (data === "action:roast") {
-        await sendRoastScreen(ctx, true);
-      } else if (data === "action:rival") {
+      } else if (data === "action:roast" || data === "action:roast_picker") {
+        await sendRoastPickerScreen(ctx, undefined, "normal", true);
+      } else if (data.startsWith("action:select_roast_acc:")) {
+        const accountId = data.replace("action:select_roast_acc:", "");
+        await sendRoastPickerScreen(ctx, accountId, "normal", true);
+      } else if (data.startsWith("action:set_roast_lvl:")) {
+        const [, , lvl, accId] = data.split(":");
+        await sendRoastPickerScreen(ctx, accId === "top" ? undefined : accId, lvl as RoastLevel, true);
+      } else if (data.startsWith("action:re_roast:")) {
+        const [, , accId, lvl] = data.split(":");
+        await sendRoastPickerScreen(ctx, accId === "top" ? undefined : accId, lvl as RoastLevel, true);
+      } else if (data === "action:rival" || data === "action:rival_picker") {
+        await sendRivalPickerScreen(ctx, true);
+      } else if (data.startsWith("action:set_rival:")) {
+        const rivalAccountId = data.replace("action:set_rival:", "");
+        const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
+        await LeagueService.setRival(user.id, rivalAccountId);
         await sendRivalScreen(ctx, true);
       } else if (data === "action:footprint") {
         await sendFootprintScreen(ctx, true);
@@ -131,7 +174,7 @@ export function registerBotHandlers(bot: Bot) {
         userSessionState.set(tgUser.id, { state: "AWAITING_USERNAME" });
         await safeSendOrEdit(
           ctx,
-          `➕ *Track a Telegram Account*\n\n` +
+          `➕ *Track a Telegram Competitor*\n\n` +
           `Send the public Telegram username to add to your competition (up to 3 slots):\n\n` +
           `_Example:_ \`@fuadtesfaye\``,
           BotMenus.backToMain(),
@@ -197,21 +240,52 @@ export function registerBotHandlers(bot: Bot) {
           BotMenus.backToMain(),
           true
         );
+      } else if (data === "action:settings") {
+        await safeSendOrEdit(
+          ctx,
+          `⚙️ *Telegram League Settings*\n\n` +
+          `• Weekly Winner Notification: \`Enabled\`\n` +
+          `• Timezone: \`UTC\`\n` +
+          `• League Tiers: \`Bronze (<10h), Silver (10-20h), Gold (20-30h), Diamond (30-40h), Royalty (40h+)\`\n\n` +
+          `Use the Mini App for full customization.`,
+          BotMenus.backToMain(),
+          true
+        );
       }
     } catch (error: any) {
       logger.error("Error in bot callback query handler", { error });
     }
   });
 
-  // Handle text input
+  // Handle text input & persistent reply keyboard buttons
   bot.on("message:text", async (ctx) => {
     const tgUser = ctx.from;
     if (!tgUser) return;
 
+    const text = ctx.message.text.trim();
+
+    // 1. Check persistent keyboard triggers
+    if (text === "🏆 Telegram League") return sendLeagueScreen(ctx);
+    if (text === "👤 My Stats") return sendMyTelegramScreen(ctx);
+    if (text === "🔥 Roast Me") return sendRoastPickerScreen(ctx);
+    if (text === "⚔️ The Rival") return sendRivalPickerScreen(ctx);
+    if (text === "🕵️ Chat Footprint") return sendFootprintScreen(ctx);
+    if (text === "🎖 Mini-Awards") return sendAwardsScreen(ctx);
+    if (text === "➕ Add Competitor") {
+      userSessionState.set(tgUser.id, { state: "AWAITING_USERNAME" });
+      return ctx.reply(
+        `➕ *Track a Telegram Competitor*\n\n` +
+        `Send the public Telegram username to add to your competition (up to 3 slots):\n\n` +
+        `_Example:_ \`@fuadtesfaye\``,
+        { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
+      );
+    }
+    if (text === "⚙️ Settings") return sendDashboardScreen(ctx);
+
+    // 2. Check pending input state
     const userState = userSessionState.get(tgUser.id);
     if (userState?.state === "AWAITING_USERNAME") {
       userSessionState.delete(tgUser.id);
-      const text = ctx.message.text.trim();
       const username = normalizeUsername(text);
 
       if (!username || username.length < 3) {
@@ -256,7 +330,7 @@ async function safeSendOrEdit(ctx: Context, text: string, replyMarkup: any, edit
       await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: replyMarkup });
       return;
     } catch {
-      // Fall back to sending reply if message edit fails
+      // fallback
     }
   }
   await ctx.reply(text, { parse_mode: "Markdown", reply_markup: replyMarkup });
@@ -352,7 +426,12 @@ async function sendLeagueScreen(ctx: Context, edit: boolean = false) {
   await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
 }
 
-async function sendRoastScreen(ctx: Context, edit: boolean = false) {
+async function sendRoastPickerScreen(
+  ctx: Context,
+  accountId?: string,
+  level: RoastLevel = "normal",
+  edit: boolean = false
+) {
   const tgUser = ctx.from;
   if (!tgUser) return;
 
@@ -365,45 +444,64 @@ async function sendRoastScreen(ctx: Context, edit: boolean = false) {
     return;
   }
 
-  const victim = leaderboard.competitors[0];
-  const roastData = LeagueService.generateRoast(victim, 1, leaderboard.competitors.length, "normal");
+  const target = accountId
+    ? leaderboard.competitors.find((c) => c.accountId === accountId) || leaderboard.competitors[0]
+    : leaderboard.competitors[0];
+
+  const roastData = LeagueService.generateRoast(target, target.rank, leaderboard.competitors.length, level);
+
+  const levelIcons: Record<RoastLevel, string> = {
+    friendly: "🙂 Friendly",
+    normal: "🔥 Normal",
+    brutal: "💀 Brutal",
+    nuclear: "☠️ Nuclear",
+  };
 
   const text =
-    `🔥 *TELEGRAM LEAGUE ROAST*\n` +
+    `🔥 *TELEGRAM LEAGUE ROAST (${levelIcons[level]})*\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `🎯 *Target:* *${victim.displayName}*\n` +
-    `📊 *Observed:* \`${victim.formattedDuration}\` (${victim.sessionCount} sessions)\n` +
-    `👑 *Title:* ${victim.title}\n\n` +
+    `🎯 *Target:* *${target.displayName}*\n` +
+    `📊 *Observed:* \`${target.formattedDuration}\` (${target.sessionCount} sessions)\n` +
+    `👑 *Title:* ${target.title}\n\n` +
     `💬 _"${roastData.roastText}"_\n\n` +
-    `${roastData.verdict}`;
+    `${roastData.verdict}\n\n` +
+    `_Choose intensity or switch competitor below:_`;
 
-  await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
+  const menu = BotMenus.roastPickerMenu(leaderboard.competitors, target.accountId, level);
+  await safeSendOrEdit(ctx, text, menu, edit);
 }
 
-async function sendRivalScreen(ctx: Context, edit: boolean = false) {
+async function sendRivalPickerScreen(ctx: Context, edit: boolean = false) {
   const tgUser = ctx.from;
   if (!tgUser) return;
 
   const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
-  const rivalData = await LeagueService.getRivalStatus(user.id);
+  const accounts = await AccountRepository.listByOwner(user.id);
 
-  if (!rivalData) {
-    const text = `⚔️ *The Rival*\n\nYou need at least 2 tracked accounts to activate head-to-head rivalry mode!`;
+  if (accounts.length < 2) {
+    const text = `⚔️ *The Rival Showdown*\n\nYou need at least 2 tracked accounts to activate head-to-head rivalry mode!`;
     await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
     return;
   }
 
-  const { userAccount, rivalAccount, statusMessage } = rivalData;
+  const rivalData = await LeagueService.getRivalStatus(user.id);
+  const currentRivalId = rivalData?.rivalAccount?.accountId;
 
   const text =
     `⚔️ *HEAD-TO-HEAD RIVALRY*\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
-    `👑 *${userAccount?.displayName}:* \`${userAccount?.formattedDuration}\`\n` +
-    `😈 *${rivalAccount?.displayName}:* \`${rivalAccount?.formattedDuration}\`\n\n` +
+    `👑 *${rivalData?.userAccount?.displayName}:* \`${rivalData?.userAccount?.formattedDuration}\`\n` +
+    `😈 *${rivalData?.rivalAccount?.displayName}:* \`${rivalData?.rivalAccount?.formattedDuration}\`\n\n` +
     `━━━━━━━━━━━━━━━━━━━━━━━━\n` +
-    `${statusMessage}`;
+    `${rivalData?.statusMessage}\n\n` +
+    `_Select a competitor below to switch your designated rival:_`;
 
-  await safeSendOrEdit(ctx, text, BotMenus.leagueMenu(), edit);
+  const menu = BotMenus.rivalPickerMenu(accounts, currentRivalId);
+  await safeSendOrEdit(ctx, text, menu, edit);
+}
+
+async function sendRivalScreen(ctx: Context, edit: boolean = false) {
+  return sendRivalPickerScreen(ctx, edit);
 }
 
 async function sendAwardsScreen(ctx: Context, edit: boolean = false) {
@@ -481,7 +579,7 @@ async function sendAccountsScreen(ctx: Context, edit: boolean = false) {
     `👤 *Tracked Competitors (${accounts.length} / 3 slots)*\n\n` +
     (accounts.length === 0
       ? `No accounts enrolled. Tap below to add your first competitor.`
-      : `Select a competitor to view session history and roasts:`);
+      : `Select a competitor to view session history, set as rival, or generate a roast:`);
 
   await safeSendOrEdit(ctx, text, BotMenus.accountsListMenu(accounts), edit);
 }
