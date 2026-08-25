@@ -11,14 +11,15 @@ export interface MenuAccountItem {
 
 export class BotMenus {
   /**
-   * Persistent bottom Reply Keyboard for 1-tap navigation
+   * Persistent bottom Reply Keyboard for 1-tap fast navigation
    */
   static persistentReplyKeyboard() {
     return new Keyboard()
       .text("🏆 Weekly League").text("👤 My Stats").row()
       .text("🔥 Roast Me").text("⚔️ The Rival").row()
+      .text("🎲 Weekly Bets").text("⚖️ Compare").row()
       .text("🕵️ Chat Footprint").text("🎖 Mini-Awards").row()
-      .text("➕ Add Competitor").text("⚙️ Main Menu").row()
+      .text("➕ Add Competitor").text("⚙️ Choice Hub").row()
       .resized();
   }
 
@@ -34,15 +35,19 @@ export class BotMenus {
       .row()
       .text("2️⃣ 👤 My Stats & Footprint", "action:my")
       .row()
-      .text("3️⃣ 🔥 Roast Me (Choose Level)", "action:roast_picker")
+      .text("3️⃣ 🔥 Roast Me (4 Levels)", "action:roast_picker")
       .row()
       .text("4️⃣ ⚔️ Head-to-Head Rival", "action:rival_picker")
       .row()
-      .text("5️⃣ 🎖 Weekly Mini-Awards", "action:awards")
+      .text("5️⃣ 🎲 Weekly Wagers & Odds", "action:wagers")
       .row()
-      .text("6️⃣ ➕ Manage Competitors (3 Slots)", "action:accounts")
+      .text("6️⃣ ⚖️ Compare Competitors", "action:compare")
       .row()
-      .text("7️⃣ 📖 Help & Game Rules", "action:help");
+      .text("7️⃣ 🎖 Weekly Mini-Awards", "action:awards")
+      .row()
+      .text("8️⃣ ➕ Competitor Slots (3 Max)", "action:accounts")
+      .row()
+      .text("9️⃣ 📖 Help & Game Rules", "action:help");
   }
 
   /**
@@ -101,6 +106,36 @@ export class BotMenus {
   }
 
   /**
+   * Wagers & Odds Menu
+   */
+  static wagersMenu() {
+    return new InlineKeyboard()
+      .text("🏆 View Standings", "action:league")
+      .text("⚔️ Rival Battle", "action:rival_picker")
+      .row()
+      .text("« Back to Menu", "action:home");
+  }
+
+  /**
+   * Compare Screen Menu
+   */
+  static compareMenu(accounts: MenuAccountItem[], accAId?: string, accBId?: string) {
+    const kb = new InlineKeyboard();
+    if (accounts.length > 2) {
+      for (const acc of accounts) {
+        const accId = acc.accountId || acc.id || "";
+        const name = acc.displayName || (acc.username ? `@${acc.username}` : "Account");
+        if (accId !== accAId && accId !== accBId) {
+          kb.text(`Compare with ${name}`, `action:compare_with:${accId}`).row();
+        }
+      }
+    }
+    kb.text("🏆 League Standings", "action:league")
+      .text("« Back to Menu", "action:home");
+    return kb;
+  }
+
+  /**
    * League screen keyboard
    */
   static leagueMenu() {
@@ -108,9 +143,10 @@ export class BotMenus {
       .text("🔥 Roast #1 Leader", "action:roast_picker")
       .text("⚔️ Rival Battle", "action:rival_picker")
       .row()
+      .text("🎲 Live Bets & Odds", "action:wagers")
       .text("🎖 Mini-Awards", "action:awards")
-      .text("🔄 Refresh Standings", "action:league")
       .row()
+      .text("🔄 Refresh Standings", "action:league")
       .text("« Back to Menu", "action:home");
   }
 
@@ -136,7 +172,7 @@ export class BotMenus {
    */
   static accountMenu(accountId: string, isTrackingActive: boolean) {
     const kb = new InlineKeyboard()
-      .text("📊 Overview", `action:acc_overview:${accountId}`)
+      .text("📊 Overview", `action:view_acc:${accountId}`)
       .text("🔥 Roast Account", `action:select_roast_acc:${accountId}`)
       .row()
       .text("⚔️ Set as My Rival", `action:set_rival:${accountId}`)

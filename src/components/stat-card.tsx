@@ -15,17 +15,17 @@ export function StatCard({
   value,
   subtitle,
   icon: Icon,
-  iconColor = "text-sky-400",
+  iconColor = "text-blue-400",
   extra,
 }: StatCardProps) {
   return (
-    <div className="bg-[#11141c] border border-white/[0.08] rounded-xl p-3.5 flex flex-col justify-between hover:border-white/[0.14] transition-colors">
+    <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-3.5 flex flex-col justify-between hover:border-white/[0.14] transition-all">
       <div className="flex items-center justify-between mb-2">
         <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider">
           {title}
         </span>
         {Icon && (
-          <div className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-sky-400">
+          <div className="p-1.5 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center">
             <Icon className={`w-3.5 h-3.5 ${iconColor}`} />
           </div>
         )}
@@ -36,7 +36,7 @@ export function StatCard({
           {value}
         </div>
         {subtitle && (
-          <p className="text-[11px] text-zinc-400 mt-0.5 font-medium">{subtitle}</p>
+          <p className="text-[11px] text-zinc-400 mt-0.5 font-medium leading-tight">{subtitle}</p>
         )}
       </div>
 

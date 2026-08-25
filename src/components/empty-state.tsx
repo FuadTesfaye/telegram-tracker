@@ -17,18 +17,18 @@ export function EmptyState({
   onAction,
 }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-900/40 border border-slate-800/60 rounded-2xl">
-      <div className="p-3 bg-slate-800/60 rounded-2xl mb-4 text-blue-400">
-        <Icon className="w-8 h-8" />
+    <div className="flex flex-col items-center justify-center p-8 text-center bg-[#12151e] border border-white/[0.08] rounded-2xl">
+      <div className="p-3 bg-white/[0.04] border border-white/[0.06] rounded-2xl mb-3.5 text-blue-400">
+        <Icon className="w-6 h-6" />
       </div>
-      <h3 className="text-base font-semibold text-slate-100">{title}</h3>
-      <p className="text-xs text-slate-400 max-w-xs mt-1 mb-4 leading-relaxed">
+      <h3 className="text-sm font-bold text-zinc-100">{title}</h3>
+      <p className="text-xs text-zinc-400 max-w-xs mt-1 mb-4 leading-relaxed font-medium">
         {description}
       </p>
       {actionText && onAction && (
         <button
           onClick={onAction}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-colors shadow-sm"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all tap-effect border border-blue-400/20 shadow-sm"
         >
           {actionText}
         </button>

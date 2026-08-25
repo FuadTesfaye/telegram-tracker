@@ -97,11 +97,11 @@ export default function AccountDetailPage({
 
   if (isLoading || !overview) {
     return (
-      <div className="space-y-4 pt-4 animate-pulse">
-        <div className="h-8 bg-slate-900 rounded-xl w-2/3" />
-        <div className="grid grid-cols-2 gap-3">
-          <div className="h-24 bg-slate-900 rounded-2xl" />
-          <div className="h-24 bg-slate-900 rounded-2xl" />
+      <div className="space-y-4 pt-2 animate-pulse">
+        <div className="h-8 bg-white/[0.04] rounded-2xl w-2/3" />
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="h-24 bg-white/[0.04] rounded-2xl" />
+          <div className="h-24 bg-white/[0.04] rounded-2xl" />
         </div>
       </div>
     );
@@ -112,27 +112,27 @@ export default function AccountDetailPage({
   const isActive = acc.trackingStatus === "active";
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/accounts"
             onClick={() => hapticFeedback("light")}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200"
+            className="p-2 rounded-xl bg-[#12151e] border border-white/[0.08] text-zinc-400 hover:text-zinc-200 tap-effect"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-lg font-black text-slate-100 flex items-center gap-2">
+            <h1 className="text-base font-bold text-zinc-100 flex items-center gap-2">
               <span>{acc.displayName || "@" + acc.username}</span>
               <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isOnline ? "bg-emerald-400 animate-pulse" : "bg-slate-500"
+                className={`w-2 h-2 rounded-full ${
+                  isOnline ? "bg-emerald-400" : "bg-zinc-600"
                 }`}
               />
             </h1>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-zinc-400 font-medium">
               Tracked since {new Date(acc.trackingStartedAt).toLocaleDateString()}
             </p>
           </div>
@@ -141,17 +141,17 @@ export default function AccountDetailPage({
         <div className="flex items-center gap-1.5">
           <button
             onClick={toggleStatus}
-            className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-colors ${
+            className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all tap-effect ${
               isActive
-                ? "bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800"
-                : "bg-emerald-950/80 border-emerald-800/80 text-emerald-400"
+                ? "bg-[#12151e] border-white/[0.08] text-zinc-300 hover:border-white/[0.14]"
+                : "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
             }`}
           >
             {isActive ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
           </button>
           <button
             onClick={deleteAccount}
-            className="p-2 rounded-xl bg-rose-950/60 border border-rose-800/60 text-rose-400 hover:bg-rose-900/60 transition-colors"
+            className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 hover:bg-rose-500/20 transition-all tap-effect"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -159,7 +159,7 @@ export default function AccountDetailPage({
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         <StatCard
           title="Observed Today"
           value={overview.today.formattedDuration}
@@ -184,7 +184,7 @@ export default function AccountDetailPage({
         <StatCard
           title="Avg Session"
           value={formatDuration(overview.sevenDays.averageSessionSeconds)}
-          subtitle={`Peak hour: ${overview.sevenDays.peakHour}:00`}
+          subtitle={`Peak: ${overview.sevenDays.peakHour}:00`}
           icon={Zap}
           iconColor="text-purple-400"
         />
@@ -194,30 +194,30 @@ export default function AccountDetailPage({
       <HourlyHeatmap data={hourly} peakHour={overview.sevenDays.peakHour} />
 
       {/* Recent Sessions */}
-      <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
-        <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3">
+      <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+        <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
           Recent Sessions
         </h4>
         <SessionTimeline sessions={sessions} />
       </div>
 
       {/* Export Options */}
-      <div className="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm space-y-3">
-        <h4 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-          Export Verified Data
+      <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+        <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+          Export Telemetry Data
         </h4>
         <div className="grid grid-cols-2 gap-2">
           <a
             href={`/api/accounts/${id}/export?format=csv`}
             download
-            className="flex items-center justify-center gap-2 py-2 px-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:border-slate-700 transition-colors"
+            className="flex items-center justify-center gap-2 py-2.5 px-3 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs font-bold text-zinc-200 hover:border-white/[0.14] transition-all tap-effect"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> Export CSV
           </a>
           <a
             href={`/api/accounts/${id}/export?format=json`}
             download
-            className="flex items-center justify-center gap-2 py-2 px-3 bg-slate-950 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:border-slate-700 transition-colors"
+            className="flex items-center justify-center gap-2 py-2.5 px-3 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs font-bold text-zinc-200 hover:border-white/[0.14] transition-all tap-effect"
           >
             <FileCode className="w-3.5 h-3.5 text-blue-400" /> Export JSON
           </a>

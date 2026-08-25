@@ -94,10 +94,10 @@ export default function AccountsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-black text-slate-100 tracking-tight">
+          <h1 className="text-lg font-bold text-zinc-100 tracking-tight">
             League Competitor Slots
           </h1>
-          <p className="text-xs text-slate-400 font-medium">
+          <p className="text-xs text-zinc-400 font-medium">
             {usedSlots} of {maxSlots} active slots occupied
           </p>
         </div>
@@ -108,7 +108,7 @@ export default function AccountsPage() {
               setIsAddOpen(true);
               hapticFeedback("light");
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl transition-colors tap-effect border border-sky-400/20"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all tap-effect border border-blue-400/20 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5 stroke-[2.5]" /> Add Slot
           </button>
@@ -116,7 +116,7 @@ export default function AccountsPage() {
       </div>
 
       {/* 3-Slot Progress Bar */}
-      <div className="p-3 bg-[#11151f] border border-white/[0.08] rounded-xl flex items-center justify-between text-xs">
+      <div className="p-3 bg-[#12151e] border border-white/[0.08] rounded-2xl flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-zinc-200">Enrolled Trio:</span>
           <div className="flex items-center gap-1.5">
@@ -126,7 +126,7 @@ export default function AccountsPage() {
                 <div
                   key={slotIdx}
                   className={`w-4 h-1.5 rounded-full transition-colors ${
-                    isFilled ? "bg-sky-400" : "bg-white/[0.08]"
+                    isFilled ? "bg-blue-500" : "bg-white/[0.08]"
                   }`}
                 />
               );
@@ -140,9 +140,9 @@ export default function AccountsPage() {
 
       {/* Add Account Modal / Form */}
       {isAddOpen && (
-        <div className="bg-[#11151f] border border-sky-500/30 rounded-xl p-4 space-y-3 animate-in fade-in">
+        <div className="bg-[#12151e] border border-blue-500/30 rounded-2xl p-4 space-y-3 animate-in fade-in">
           <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-            <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wider">
+            <h3 className="text-xs font-bold text-zinc-100 uppercase font-mono tracking-wider">
               Add Competitor Slot
             </h3>
             <button
@@ -161,7 +161,7 @@ export default function AccountsPage() {
 
           <form onSubmit={handleAddAccount} className="space-y-3">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+              <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                 Telegram @username or Phone
               </label>
               <input
@@ -169,20 +169,20 @@ export default function AccountsPage() {
                 placeholder="@alice, @bob, etc."
                 value={usernameInput}
                 onChange={(e) => setUsernameInput(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 font-medium"
+                className="w-full px-3.5 py-2.5 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 font-medium"
                 required
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                   Custom Category
                 </label>
                 <select
                   value={labelInput}
                   onChange={(e) => setLabelInput(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+                  className="w-full px-3 py-2.5 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-blue-500"
                 >
                   <option value="Self">Myself</option>
                   <option value="Friend">Friend</option>
@@ -194,7 +194,7 @@ export default function AccountsPage() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                   Private Note
                 </label>
                 <input
@@ -202,7 +202,7 @@ export default function AccountsPage() {
                   placeholder="e.g. Lead rival"
                   value={notesInput}
                   onChange={(e) => setNotesInput(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 font-medium"
+                  className="w-full px-3 py-2.5 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 font-medium"
                 />
               </div>
             </div>
@@ -210,7 +210,7 @@ export default function AccountsPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-black rounded-xl shadow-sm transition-all tap-effect"
+              className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition-all tap-effect border border-blue-400/20"
             >
               {isSubmitting ? "Resolving via MTProto..." : "Start Observing Slot"}
             </button>
@@ -236,7 +236,7 @@ export default function AccountsPage() {
             return (
               <div
                 key={acc.id}
-                className="p-4 bg-[#111622] border border-white/[0.07] rounded-2xl flex items-center justify-between hover:border-white/[0.14] transition-all"
+                className="p-3.5 bg-[#12151e] border border-white/[0.08] rounded-2xl flex items-center justify-between hover:border-white/[0.14] transition-all"
               >
                 <Link
                   href={`/accounts/${acc.id}`}
@@ -244,24 +244,24 @@ export default function AccountsPage() {
                   className="flex items-center gap-3 flex-1"
                 >
                   <div className="relative">
-                    <div className="w-10 h-10 rounded-xl bg-white/[0.05] border border-white/[0.07] flex items-center justify-center font-mono font-bold text-xs text-slate-300">
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center font-mono font-bold text-xs text-zinc-300">
                       #{idx + 1}
                     </div>
                     <span
-                      className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#11151f] ${
+                      className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#12151e] ${
                         isOnline ? "bg-emerald-400" : "bg-zinc-600"
                       }`}
                     />
                   </div>
 
                   <div>
-                    <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <div className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
                       <span>{acc.displayName || "@" + acc.username}</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-white/[0.05] text-slate-300 border border-white/[0.06] rounded-md font-semibold">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 bg-white/[0.05] text-zinc-300 border border-white/[0.06] rounded-md font-semibold">
                         {acc.label}
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-400 mt-0.5 font-medium">
+                    <div className="text-[11px] text-zinc-400 mt-0.5 font-medium">
                       Observed since {new Date(acc.trackingStartedAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -271,7 +271,7 @@ export default function AccountsPage() {
                   <button
                     onClick={() => toggleAccountStatus(acc.id, acc.trackingStatus)}
                     title={isActive ? "Pause Tracking" : "Resume Tracking"}
-                    className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/[0.05] transition-colors tap-effect"
+                    className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border border-white/[0.05] transition-all tap-effect"
                   >
                     {isActive ? (
                       <Pause className="w-3.5 h-3.5" />
@@ -282,7 +282,7 @@ export default function AccountsPage() {
                   <Link
                     href={`/accounts/${acc.id}`}
                     onClick={() => hapticFeedback("light")}
-                    className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 border border-white/[0.05] transition-colors tap-effect"
+                    className="p-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-300 border border-white/[0.05] transition-all tap-effect"
                   >
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>

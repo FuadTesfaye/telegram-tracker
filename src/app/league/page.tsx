@@ -110,29 +110,29 @@ export default function LeaguePage() {
             🏆 Telegram League
           </h1>
           <p className="text-xs text-zinc-400 font-medium">
-            Week {leaderboardData.weekNumber} • {leaderboardData.triumvirateTitle || "The Blue Council"}
+            Week {leaderboardData.weekNumber} • {leaderboardData.triumvirateTitle || "The Obsidian Council"}
           </p>
         </div>
 
         <Link
           href="/fun"
           onClick={() => hapticFeedback("light")}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl transition-colors tap-effect border border-sky-400/20"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all tap-effect border border-blue-400/20 shadow-sm"
         >
           <Flame className="w-3.5 h-3.5 fill-white" /> Roast Me
         </Link>
       </div>
 
       {/* Clean Segmented Tab Switcher */}
-      <div className="flex items-center bg-[#10131b] border border-white/[0.08] p-1 rounded-xl text-xs font-semibold">
+      <div className="flex items-center bg-[#10131d] border border-white/[0.08] p-1 rounded-2xl text-xs font-semibold">
         <button
           onClick={() => {
             setActiveTab("leaderboard");
             hapticFeedback("light");
           }}
-          className={`flex-1 py-1.5 rounded-lg transition-colors tap-effect ${
+          className={`flex-1 py-1.5 rounded-xl transition-all tap-effect ${
             activeTab === "leaderboard"
-              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold"
+              ? "bg-blue-500/15 text-blue-400 border border-blue-500/30 font-bold"
               : "text-zinc-400 hover:text-zinc-200 border border-transparent"
           }`}
         >
@@ -143,9 +143,9 @@ export default function LeaguePage() {
             setActiveTab("rival");
             hapticFeedback("light");
           }}
-          className={`flex-1 py-1.5 rounded-lg transition-colors tap-effect ${
+          className={`flex-1 py-1.5 rounded-xl transition-all tap-effect ${
             activeTab === "rival"
-              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold"
+              ? "bg-blue-500/15 text-blue-400 border border-blue-500/30 font-bold"
               : "text-zinc-400 hover:text-zinc-200 border border-transparent"
           }`}
         >
@@ -156,9 +156,9 @@ export default function LeaguePage() {
             setActiveTab("wagers");
             hapticFeedback("light");
           }}
-          className={`flex-1 py-1.5 rounded-lg transition-colors tap-effect ${
+          className={`flex-1 py-1.5 rounded-xl transition-all tap-effect ${
             activeTab === "wagers"
-              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold"
+              ? "bg-blue-500/15 text-blue-400 border border-blue-500/30 font-bold"
               : "text-zinc-400 hover:text-zinc-200 border border-transparent"
           }`}
         >
@@ -169,9 +169,9 @@ export default function LeaguePage() {
             setActiveTab("awards");
             hapticFeedback("light");
           }}
-          className={`flex-1 py-1.5 rounded-lg transition-colors tap-effect ${
+          className={`flex-1 py-1.5 rounded-xl transition-all tap-effect ${
             activeTab === "awards"
-              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 font-bold"
+              ? "bg-blue-500/15 text-blue-400 border border-blue-500/30 font-bold"
               : "text-zinc-400 hover:text-zinc-200 border border-transparent"
           }`}
         >
@@ -196,10 +196,10 @@ export default function LeaguePage() {
             <div className="space-y-2.5">
               {/* Roast of the Week Card */}
               {leaderboardData.roastOfTheWeek && (
-                <div className="p-3.5 bg-[#11151f] border border-white/[0.08] rounded-xl relative">
+                <div className="p-3.5 bg-[#12151e] border border-white/[0.08] rounded-2xl relative">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                      <Flame className="w-3.5 h-3.5 fill-sky-400" /> Roast of the Week
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                      <Flame className="w-3.5 h-3.5 fill-amber-400" /> Roast of the Week
                     </span>
                     <button
                       onClick={() => copyRoast(leaderboardData.roastOfTheWeek!)}
@@ -217,23 +217,23 @@ export default function LeaguePage() {
 
               {/* Crown Gap Tracker Banner */}
               {competitors.length > 1 && (
-                <div className="p-3 bg-[#11151f] border border-sky-500/20 rounded-xl flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-lg">👑</span>
+                <div className="p-3.5 bg-[#12151e] border border-amber-500/25 rounded-2xl flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">👑</span>
                     <div>
                       <span className="text-zinc-200 font-bold block">
                         Battle for the Crown
                       </span>
                       <span className="text-[11px] text-zinc-400 font-medium">
                         {competitors[1]?.displayName} is{" "}
-                        <strong className="text-sky-400 font-mono">
+                        <strong className="text-amber-400 font-mono">
                           {competitors[1]?.formattedGapToLeader}
                         </strong>{" "}
                         behind #1
                       </span>
                     </div>
                   </div>
-                  <span className="text-[11px] font-mono font-bold text-sky-400 px-2 py-0.5 bg-sky-500/10 border border-sky-500/20 rounded-md">
+                  <span className="text-[10px] font-mono font-bold text-amber-400 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-md">
                     LIVE GAP
                   </span>
                 </div>
@@ -257,11 +257,11 @@ export default function LeaguePage() {
                   return (
                     <div
                       key={c.accountId}
-                      className="p-3.5 rounded-xl border border-white/[0.08] bg-[#11151f] hover:border-white/[0.14] transition-colors"
+                      className="p-3.5 rounded-2xl border border-white/[0.08] bg-[#12151e] hover:border-white/[0.14] transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono font-bold text-xs ${badgeClass}`}>
+                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-mono font-bold text-xs ${badgeClass}`}>
                             #{idx + 1}
                           </div>
                           <div>
@@ -293,19 +293,19 @@ export default function LeaguePage() {
 
                       {/* Micro stats strip */}
                       <div className="grid grid-cols-3 gap-1.5 mt-2.5 pt-2 border-t border-white/[0.05] text-center text-[10px]">
-                        <div className="bg-black/30 p-1 rounded-md border border-white/[0.04]">
+                        <div className="bg-[#181c28] p-1.5 rounded-xl border border-white/[0.04]">
                           <span className="text-zinc-400 block font-medium">Longest</span>
                           <span className="font-mono font-bold text-zinc-200">
                             {c.formattedLongestSession}
                           </span>
                         </div>
-                        <div className="bg-black/30 p-1 rounded-md border border-white/[0.04]">
+                        <div className="bg-[#181c28] p-1.5 rounded-xl border border-white/[0.04]">
                           <span className="text-zinc-400 block font-medium">Tier</span>
-                          <span className="font-bold text-sky-400">
+                          <span className="font-bold text-blue-400">
                             {c.tier?.name || "Bronze"}
                           </span>
                         </div>
-                        <div className="bg-black/30 p-1 rounded-md border border-white/[0.04]">
+                        <div className="bg-[#181c28] p-1.5 rounded-xl border border-white/[0.04]">
                           <span className="text-zinc-400 block font-medium">Gap to #1</span>
                           <span className="font-mono font-bold text-zinc-200">
                             {c.formattedGapToLeader}
@@ -323,27 +323,27 @@ export default function LeaguePage() {
           {activeTab === "rival" && (
             <div className="space-y-3">
               {rivalData ? (
-                <div className="p-4 bg-[#11151f] border border-white/[0.08] rounded-xl space-y-3">
+                <div className="p-4 bg-[#12151e] border border-white/[0.08] rounded-2xl space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
-                      <Swords className="w-4 h-4 text-sky-400" /> Head-to-Head Showdown
+                      <Swords className="w-4 h-4 text-blue-400" /> Head-to-Head Showdown
                     </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-md">
+                    <span className="text-[10px] font-bold uppercase font-mono tracking-wider px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">
                       Rivalry
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2.5 text-center">
-                    <div className="p-3 bg-black/40 rounded-xl border border-white/[0.06]">
+                    <div className="p-3 bg-[#181c28] rounded-xl border border-white/[0.06]">
                       <span className="text-xs text-zinc-400 font-medium block mb-1">
                         {rivalData.userAccount?.displayName}
                       </span>
-                      <span className="text-base font-bold text-sky-400 font-mono tabular-nums">
+                      <span className="text-base font-bold text-blue-400 font-mono tabular-nums">
                         {rivalData.userAccount?.formattedDuration}
                       </span>
                     </div>
 
-                    <div className="p-3 bg-black/40 rounded-xl border border-white/[0.06]">
+                    <div className="p-3 bg-[#181c28] rounded-xl border border-white/[0.06]">
                       <span className="text-xs text-zinc-400 font-medium block mb-1">
                         {rivalData.rivalAccount?.displayName}
                       </span>
@@ -375,9 +375,9 @@ export default function LeaguePage() {
           {activeTab === "wagers" && (
             <div className="space-y-2.5">
               {/* Balance Card */}
-              <div className="p-3.5 bg-[#11151f] border border-white/[0.08] rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-sky-400">
+              <div className="p-3.5 bg-[#12151e] border border-white/[0.08] rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                     <Coins className="w-4 h-4" />
                   </div>
                   <div>
@@ -385,21 +385,21 @@ export default function LeaguePage() {
                       Weekly Wager Balance
                     </span>
                     <span className="text-base font-bold text-zinc-100 font-mono tabular-nums">
-                      {lockedWager ? 1000 - lockedWager.amount : 1000} <span className="text-xs text-sky-400 font-sans font-bold">PTS</span>
+                      {lockedWager ? 1000 - lockedWager.amount : 1000} <span className="text-xs text-blue-400 font-sans font-bold">PTS</span>
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-zinc-400 bg-black/40 px-2 py-0.5 rounded-md border border-white/[0.05]">
+                <span className="text-[10px] font-mono font-bold text-zinc-400 bg-[#181c28] px-2 py-0.5 rounded-md border border-white/[0.05]">
                   Week {leaderboardData.weekNumber}
                 </span>
               </div>
 
               {/* Active / Locked Wager Slip */}
               {lockedWager && (
-                <div className="p-3.5 bg-[#11151f] border border-sky-500/30 rounded-xl space-y-2.5 animate-in fade-in">
+                <div className="p-3.5 bg-[#12151e] border border-blue-500/30 rounded-2xl space-y-2.5 animate-in fade-in">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-sky-400 stroke-[3]" /> Wager Locked In
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                      <Check className="w-3.5 h-3.5 text-blue-400 stroke-[3]" /> Wager Locked In
                     </span>
                     <button
                       onClick={() => copyWager(lockedWager)}
@@ -420,8 +420,8 @@ export default function LeaguePage() {
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] text-zinc-400 uppercase font-bold block">Potential Payout</span>
-                      <span className="text-xs font-bold text-sky-400 font-mono tabular-nums">
+                      <span className="text-[10px] text-zinc-400 uppercase font-mono font-bold block">Potential Payout</span>
+                      <span className="text-xs font-bold text-blue-400 font-mono tabular-nums">
                         +{lockedWager.potentialWin} pts
                       </span>
                     </div>
@@ -430,10 +430,10 @@ export default function LeaguePage() {
               )}
 
               {/* Wager Amount Selector */}
-              <div className="bg-[#11151f] border border-white/[0.08] rounded-xl p-3 space-y-2">
+              <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-semibold text-zinc-300">Wager Stake:</span>
-                  <span className="font-mono font-bold text-sky-400">{wagerAmount} PTS</span>
+                  <span className="font-mono font-bold text-blue-400">{wagerAmount} PTS</span>
                 </div>
                 <div className="grid grid-cols-4 gap-1.5">
                   {[100, 250, 500, 1000].map((amt) => (
@@ -443,10 +443,10 @@ export default function LeaguePage() {
                         setWagerAmount(amt);
                         hapticFeedback("light");
                       }}
-                      className={`py-1.5 text-xs font-mono font-bold rounded-lg transition-colors tap-effect border ${
+                      className={`py-1.5 text-xs font-mono font-bold rounded-xl transition-all tap-effect border ${
                         wagerAmount === amt
-                          ? "bg-sky-500/15 text-sky-300 border-sky-500/30"
-                          : "bg-black/30 text-zinc-400 border-white/[0.04] hover:text-zinc-200"
+                          ? "bg-blue-500/15 text-blue-400 border-blue-500/30"
+                          : "bg-[#181c28] text-zinc-400 border-white/[0.04] hover:text-zinc-200"
                       }`}
                     >
                       {amt === 1000 ? "ALL-IN" : `${amt}`}
@@ -473,9 +473,9 @@ export default function LeaguePage() {
                     return (
                       <div
                         key={oddItem.accountId}
-                        className={`p-3 bg-[#11151f] border rounded-xl transition-colors space-y-2 ${
+                        className={`p-3.5 bg-[#12151e] border rounded-2xl transition-all space-y-2.5 ${
                           isSelected
-                            ? "border-sky-500/40"
+                            ? "border-blue-500/40"
                             : "border-white/[0.08] hover:border-white/[0.14]"
                         }`}
                       >
@@ -484,12 +484,12 @@ export default function LeaguePage() {
                             <div className="text-xs font-bold text-zinc-100 flex items-center gap-2">
                               <span>{oddItem.displayName}</span>
                               <span
-                                className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${
+                                className={`text-[9px] font-bold uppercase font-mono tracking-wider px-1.5 py-0.5 rounded ${
                                   oddItem.role === "FAVORITE"
-                                    ? "bg-sky-500/15 text-sky-300 border border-sky-500/30"
+                                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
                                     : oddItem.role === "CONTENDER"
                                     ? "bg-white/[0.06] text-zinc-300 border border-white/[0.08]"
-                                    : "bg-black/40 text-zinc-400 border border-white/[0.04]"
+                                    : "bg-[#181c28] text-zinc-400 border border-white/[0.04]"
                                 }`}
                               >
                                 {oddItem.role}
@@ -501,7 +501,7 @@ export default function LeaguePage() {
                           </div>
 
                           <div className="text-right">
-                            <span className="text-sm font-bold text-sky-400 font-mono tabular-nums block">
+                            <span className="text-sm font-bold text-blue-400 font-mono tabular-nums block">
                               {oddItem.odds}x
                             </span>
                             <span className="text-[9px] text-zinc-400 font-medium uppercase font-mono">
@@ -512,7 +512,7 @@ export default function LeaguePage() {
 
                         <button
                           onClick={() => handlePlaceWager(oddItem)}
-                          className="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl transition-colors tap-effect border border-sky-400/20 flex items-center justify-center gap-1.5"
+                          className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all tap-effect border border-blue-400/20 flex items-center justify-center gap-1.5"
                         >
                           <Dices className="w-3.5 h-3.5" />
                           <span>Bet {wagerAmount} pts (Win +{Math.round(wagerAmount * oddItem.odds)} pts)</span>
@@ -538,10 +538,10 @@ export default function LeaguePage() {
                 leaderboardData.awards.map((award) => (
                   <div
                     key={award.id}
-                    className="p-3 bg-[#11151f] border border-white/[0.08] rounded-xl flex items-center justify-between hover:border-white/[0.12] transition-colors"
+                    className="p-3.5 bg-[#12151e] border border-white/[0.08] rounded-2xl flex items-center justify-between hover:border-white/[0.14] transition-all"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xl">{award.icon}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{award.icon}</span>
                       <div>
                         <span className="text-xs font-bold text-zinc-100 block">
                           {award.title}
@@ -556,7 +556,7 @@ export default function LeaguePage() {
                       <span className="text-xs font-bold text-zinc-200 block">
                         {award.recipientName}
                       </span>
-                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
                         {award.badge}
                       </span>
                     </div>

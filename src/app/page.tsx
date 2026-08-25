@@ -24,7 +24,6 @@ import {
   Sparkles,
   PieChart,
   Dices,
-  Coins,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -70,16 +69,16 @@ export default function HomePage() {
   if (isAuthLoading || (isAccountsLoading && accounts.length === 0)) {
     return (
       <div className="space-y-3 pt-2 animate-pulse">
-        <div className="h-8 bg-white/[0.04] rounded-xl w-3/4" />
+        <div className="h-8 bg-white/[0.04] rounded-2xl w-3/4" />
         <div className="grid grid-cols-4 gap-2">
-          <div className="h-16 bg-white/[0.04] rounded-xl" />
-          <div className="h-16 bg-white/[0.04] rounded-xl" />
-          <div className="h-16 bg-white/[0.04] rounded-xl" />
-          <div className="h-16 bg-white/[0.04] rounded-xl" />
+          <div className="h-16 bg-white/[0.04] rounded-2xl" />
+          <div className="h-16 bg-white/[0.04] rounded-2xl" />
+          <div className="h-16 bg-white/[0.04] rounded-2xl" />
+          <div className="h-16 bg-white/[0.04] rounded-2xl" />
         </div>
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="h-24 bg-white/[0.04] rounded-xl" />
-          <div className="h-24 bg-white/[0.04] rounded-xl" />
+          <div className="h-24 bg-white/[0.04] rounded-2xl" />
+          <div className="h-24 bg-white/[0.04] rounded-2xl" />
         </div>
       </div>
     );
@@ -92,7 +91,7 @@ export default function HomePage() {
         <div>
           <h1 className="text-lg font-bold text-zinc-100 tracking-tight flex items-center gap-2">
             Telegram League
-            <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-md">
+            <span className="text-[10px] uppercase font-mono font-bold tracking-wider px-2 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md">
               {user?.plan || "free"}
             </span>
           </h1>
@@ -102,7 +101,7 @@ export default function HomePage() {
         <Link
           href="/accounts"
           onClick={() => hapticFeedback("light")}
-          className="p-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl transition-colors tap-effect border border-sky-400/20"
+          className="p-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl transition-all tap-effect border border-blue-400/20 shadow-sm"
         >
           <Plus className="w-4 h-4 stroke-[2.5]" />
         </Link>
@@ -113,10 +112,10 @@ export default function HomePage() {
         <Link
           href="/league"
           onClick={() => hapticFeedback("light")}
-          className="bg-[#11151f] border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-xl flex flex-col items-center justify-center text-center space-y-1.5 transition-colors tap-effect"
+          className="bg-[#12151e] border border-white/[0.08] hover:border-white/[0.14] p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
         >
-          <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-sky-400">
-            <Trophy className="w-3.5 h-3.5" />
+          <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-blue-400">
+            <Trophy className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-semibold text-zinc-200">League</span>
         </Link>
@@ -124,10 +123,10 @@ export default function HomePage() {
         <Link
           href="/fun"
           onClick={() => hapticFeedback("light")}
-          className="bg-[#11151f] border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-xl flex flex-col items-center justify-center text-center space-y-1.5 transition-colors tap-effect"
+          className="bg-[#12151e] border border-white/[0.08] hover:border-white/[0.14] p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
         >
-          <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-sky-400">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-amber-400">
+            <Sparkles className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-semibold text-zinc-200">Roast Hub</span>
         </Link>
@@ -135,10 +134,10 @@ export default function HomePage() {
         <Link
           href="/compare"
           onClick={() => hapticFeedback("light")}
-          className="bg-[#11151f] border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-xl flex flex-col items-center justify-center text-center space-y-1.5 transition-colors tap-effect"
+          className="bg-[#12151e] border border-white/[0.08] hover:border-white/[0.14] p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
         >
-          <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-sky-400">
-            <Swords className="w-3.5 h-3.5" />
+          <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-rose-400">
+            <Swords className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-semibold text-zinc-200">Rival Gap</span>
         </Link>
@@ -146,10 +145,10 @@ export default function HomePage() {
         <Link
           href="/my"
           onClick={() => hapticFeedback("light")}
-          className="bg-[#11151f] border border-white/[0.08] hover:border-sky-500/30 p-2.5 rounded-xl flex flex-col items-center justify-center text-center space-y-1.5 transition-colors tap-effect"
+          className="bg-[#12151e] border border-white/[0.08] hover:border-white/[0.14] p-2.5 rounded-2xl flex flex-col items-center justify-center text-center space-y-1.5 transition-all tap-effect"
         >
-          <div className="w-7 h-7 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-sky-400">
-            <PieChart className="w-3.5 h-3.5" />
+          <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-emerald-400">
+            <PieChart className="w-4 h-4" />
           </div>
           <span className="text-[11px] font-semibold text-zinc-200">Footprint</span>
         </Link>
@@ -159,22 +158,22 @@ export default function HomePage() {
       <Link
         href="/league"
         onClick={() => hapticFeedback("light")}
-        className="bg-[#11151f] border border-sky-500/20 hover:border-sky-500/40 p-3 rounded-xl flex items-center justify-between transition-colors tap-effect"
+        className="bg-[#12151e] border border-blue-500/20 hover:border-blue-500/35 p-3.5 rounded-2xl flex items-center justify-between transition-all tap-effect"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center text-sky-400">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
             <Dices className="w-4 h-4" />
           </div>
           <div>
-            <span className="text-xs font-semibold text-zinc-100 block">
+            <span className="text-xs font-bold text-zinc-100 block">
               Week 35 Predictions & Wagers
             </span>
-            <span className="text-[11px] text-zinc-400 font-medium">
+            <span className="text-[11px] text-zinc-400 font-medium font-mono">
               1,000 PTS balance • Lock in champion odds
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-1 text-xs font-bold text-sky-400">
+        <div className="flex items-center gap-1 text-xs font-bold text-blue-400">
           <span>Wager</span>
           <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
         </div>
@@ -204,10 +203,10 @@ export default function HomePage() {
                     setSelectedAccountId(acc.id);
                     hapticFeedback("light");
                   }}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors border tap-effect ${
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
                     isSelected
-                      ? "bg-sky-500/15 text-sky-300 border-sky-500/30"
-                      : "bg-[#11151f] text-zinc-400 border-white/[0.06] hover:text-zinc-200"
+                      ? "bg-blue-500/15 text-blue-400 border-blue-500/30 font-bold"
+                      : "bg-[#12151e] text-zinc-400 border-white/[0.06] hover:text-zinc-200"
                   }`}
                 >
                   <span
@@ -228,21 +227,21 @@ export default function HomePage() {
               value={overview?.today.formattedDuration || "0m"}
               subtitle={`${overview?.today.sessionCount || 0} active sessions`}
               icon={Clock}
-              iconColor="text-sky-400"
+              iconColor="text-blue-400"
             />
             <StatCard
               title="7-Day Streak"
               value={`${overview?.streaks.currentStreakDays || 0}d`}
               subtitle={`Best: ${overview?.streaks.longestStreakDays || 0} days`}
               icon={Flame}
-              iconColor="text-sky-400"
+              iconColor="text-amber-400"
             />
             <StatCard
               title="7-Day Total"
               value={overview?.sevenDays.formattedDuration || "0m"}
               subtitle="Observed screen time"
               icon={Activity}
-              iconColor="text-sky-400"
+              iconColor="text-emerald-400"
               extra={
                 overview && (
                   <TrendBadge
@@ -262,13 +261,13 @@ export default function HomePage() {
               )}
               subtitle={`Peak: ${overview?.sevenDays.peakHour || 0}:00`}
               icon={Zap}
-              iconColor="text-sky-400"
+              iconColor="text-purple-400"
             />
           </div>
 
           {/* Anomaly Alert Banner if present */}
           {overview?.anomalies && overview.anomalies.length > 0 && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2.5 text-xs text-amber-200">
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-start gap-2.5 text-xs text-amber-200">
               <span className="text-amber-400 text-sm">⚠️</span>
               <div>
                 <strong className="font-semibold block text-amber-300">
@@ -282,15 +281,15 @@ export default function HomePage() {
           )}
 
           {/* Recent Sessions */}
-          <div className="bg-[#11151f] border border-white/[0.08] rounded-xl p-3.5">
-            <div className="flex items-center justify-between mb-3">
+          <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-3.5 space-y-3">
+            <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
                 Recent Sessions
               </h4>
               <Link
                 href="/history"
                 onClick={() => hapticFeedback("light")}
-                className="text-[11px] font-semibold text-sky-400 flex items-center gap-1 hover:text-sky-300 transition-colors"
+                className="text-[11px] font-semibold text-blue-400 flex items-center gap-1 hover:text-blue-300 transition-colors"
               >
                 Full History <ArrowRight className="w-3 h-3 stroke-[2.5]" />
               </Link>
@@ -302,9 +301,9 @@ export default function HomePage() {
       )}
 
       {/* Honest Data Privacy Note */}
-      <div className="p-2.5 bg-white/[0.02] border border-white/[0.05] rounded-xl flex items-center gap-2 text-[11px] text-zinc-400">
-        <ShieldCheck className="w-4 h-4 text-zinc-400 shrink-0" />
-        <span>
+      <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl flex items-center gap-2.5 text-[11px] text-zinc-400">
+        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+        <span className="leading-tight font-medium">
           Activity is based on observable Telegram presence. Telemetr does not access private messages, chats, or personal device telemetry.
         </span>
       </div>

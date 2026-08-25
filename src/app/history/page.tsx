@@ -77,10 +77,10 @@ export default function HistoryPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
+        <h1 className="text-lg font-bold text-zinc-100 tracking-tight flex items-center gap-2">
           📅 Activity History
         </h1>
-        <p className="text-xs text-slate-400 font-medium">
+        <p className="text-xs text-zinc-400 font-medium">
           Calendar presence log & timeline of recorded sessions
         </p>
       </div>
@@ -98,7 +98,7 @@ export default function HistoryPage() {
       ) : (
         <>
           {/* Account Selector Horizontal Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
             {accounts.map((acc) => {
               const isSelected = selectedAccountId === acc.id;
               return (
@@ -108,10 +108,10 @@ export default function HistoryPage() {
                     setSelectedAccountId(acc.id);
                     hapticFeedback("light");
                   }}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
                     isSelected
-                      ? "bg-sky-500/15 text-sky-300 border-sky-500/40 shadow-sm"
-                      : "bg-[#111622]/80 text-slate-400 border-white/[0.06] hover:text-slate-200"
+                      ? "bg-blue-500/15 text-blue-400 border-blue-500/30 font-bold"
+                      : "bg-[#12151e] text-zinc-400 border-white/[0.06] hover:text-zinc-200"
                   }`}
                 >
                   {acc.displayName || "@" + acc.username}
@@ -121,7 +121,7 @@ export default function HistoryPage() {
           </div>
 
           {/* Time Range Selector */}
-          <div className="flex items-center justify-between bg-[#10141e] border border-white/[0.08] p-1 rounded-xl shadow-inner">
+          <div className="flex items-center justify-between bg-[#10131d] border border-white/[0.08] p-1 rounded-2xl">
             {[7, 14, 30, 90].map((d) => (
               <button
                 key={d}
@@ -129,10 +129,10 @@ export default function HistoryPage() {
                   setDaysRange(d);
                   hapticFeedback("light");
                 }}
-                className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-lg transition-all tap-effect ${
+                className={`flex-1 py-1.5 text-xs font-mono font-bold rounded-xl transition-all tap-effect border ${
                   daysRange === d
-                    ? "bg-white/[0.1] text-white shadow-sm font-black"
-                    : "text-slate-400 hover:text-slate-200"
+                    ? "bg-blue-500/15 text-blue-400 border-blue-500/30 font-bold"
+                    : "text-zinc-400 hover:text-zinc-200 border-transparent"
                 }`}
               >
                 {d}D
@@ -144,12 +144,10 @@ export default function HistoryPage() {
           <ActivityCalendar days={calendarDays} />
 
           {/* Recorded Sessions Timeline */}
-          <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-                Recorded Sessions ({sessions.length})
-              </h4>
-            </div>
+          <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+            <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+              Recorded Sessions ({sessions.length})
+            </h4>
 
             <SessionTimeline sessions={sessions} />
           </div>

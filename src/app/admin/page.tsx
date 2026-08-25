@@ -26,88 +26,88 @@ export default function AdminPage() {
   }, []);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/settings"
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200"
+            className="p-2 rounded-xl bg-[#12151e] border border-white/[0.08] text-zinc-400 hover:text-zinc-200 tap-effect"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-xl font-black text-slate-100 tracking-tight">
+            <h1 className="text-lg font-bold text-zinc-100 tracking-tight">
               System Health
             </h1>
-            <p className="text-xs text-slate-400">Telemetr infrastructure status</p>
+            <p className="text-xs text-zinc-400 font-medium">Telemetr infrastructure status</p>
           </div>
         </div>
 
         <button
           onClick={fetchHealth}
-          className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200"
+          className="p-2 rounded-xl bg-[#12151e] border border-white/[0.08] text-zinc-400 hover:text-zinc-200 tap-effect"
         >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+          <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin text-blue-400" : ""}`} />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-3">
+      <div className="grid grid-cols-1 gap-2.5">
         {/* Database Status */}
-        <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-[#12151e] border border-white/[0.08] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-800 text-emerald-400">
-              <Database className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <Database className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-100">
+              <div className="text-xs font-bold text-zinc-100">
                 PostgreSQL Database (Supabase)
               </div>
-              <div className="text-[10px] text-slate-400">
+              <div className="text-[10px] text-zinc-400 font-medium">
                 Connection pool active
               </div>
             </div>
           </div>
-          <span className="flex items-center gap-1 text-xs font-bold text-emerald-400">
-            <CheckCircle2 className="w-4 h-4" /> Healthy
+          <span className="flex items-center gap-1 text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Healthy
           </span>
         </div>
 
         {/* Telegram Tracker Status */}
-        <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-[#12151e] border border-white/[0.08] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-800 text-blue-400">
-              <Radio className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400">
+              <Radio className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-100">
+              <div className="text-xs font-bold text-zinc-100">
                 Telegram MTProto Tracker
               </div>
-              <div className="text-[10px] text-slate-400">
+              <div className="text-[10px] text-zinc-400 font-medium">
                 Status: {health?.telegramTracker || "ready"}
               </div>
             </div>
           </div>
-          <span className="flex items-center gap-1 text-xs font-bold text-blue-400">
-            <CheckCircle2 className="w-4 h-4" /> Active
+          <span className="flex items-center gap-1 text-xs font-mono font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Active
           </span>
         </div>
 
         {/* Active Accounts Monitored */}
-        <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-[#12151e] border border-white/[0.08] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-slate-800 text-purple-400">
-              <Activity className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400">
+              <Activity className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-100">
+              <div className="text-xs font-bold text-zinc-100">
                 Active Tracked Accounts
               </div>
-              <div className="text-[10px] text-slate-400">
+              <div className="text-[10px] text-zinc-400 font-medium">
                 Under active presence monitoring
               </div>
             </div>
           </div>
-          <span className="text-sm font-black text-slate-100 font-mono">
+          <span className="text-sm font-bold text-zinc-100 font-mono tabular-nums">
             {health?.activeAccounts || 0}
           </span>
         </div>

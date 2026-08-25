@@ -3,83 +3,99 @@
 @tailwind utilities;
 
 :root {
-  --background: #090a0f;
-  --foreground: #f4f4f5;
-  --card: #11141c;
-  --card-foreground: #fafafa;
-  --popover: #11141c;
-  --popover-foreground: #fafafa;
-  --primary: #0284c7;
+  --background: #0c0d12;
+  --foreground: #f8fafc;
+  --card: #12151e;
+  --card-foreground: #f8fafc;
+  --popover: #12151e;
+  --popover-foreground: #f8fafc;
+  --primary: #3b82f6;
   --primary-foreground: #ffffff;
-  --secondary: #181c26;
-  --secondary-foreground: #e4e4e7;
-  --muted: #141722;
-  --muted-foreground: #71717a;
-  --accent: #0ea5e9;
+  --secondary: #181c28;
+  --secondary-foreground: #e2e8f0;
+  --muted: #161922;
+  --muted-foreground: #94a3b8;
+  --accent: #3b82f6;
   --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  --destructive: #f43f5e;
   --destructive-foreground: #ffffff;
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.08);
-  --ring: #0284c7;
+  --ring: #3b82f6;
   --radius: 0.75rem;
 }
 
 body {
-  background-color: #090a0f;
-  color: #f4f4f5;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #0c0d12;
+  color: #f8fafc;
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   min-height: 100vh;
   overflow-x: hidden;
+  letter-spacing: -0.01em;
 }
 
 /* Micro-Interactions */
-button:active {
+button:active, a:active {
   transform: scale(0.985);
 }
 
 .tap-effect {
-  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.12s ease;
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.12s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 .tap-effect:active {
   transform: scale(0.98);
   opacity: 0.92;
 }
 
-/* Enterprise Surface Panels - Zero Neon, Flat Crisp Borders */
+/* Surface Panels - Zero Neon, Deep Obsidian Slate Layers */
+.surface-panel {
+  background: #12151e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.surface-card {
+  background: #12151e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.surface-elevated {
+  background: #181c28;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Backward compatibility aliases */
 .glass-panel {
-  background: #10131b;
+  background: #12151e;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-card {
-  background: #11151f;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #12151e;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Crisp Clean Badges */
+/* Refined Metallic Badges (Zero Neon, Antique Burnished Tones) */
 .gold-badge {
-  background: rgba(234, 179, 8, 0.1);
-  border: 1px solid rgba(234, 179, 8, 0.25);
-  color: #facc15;
+  background: rgba(229, 169, 60, 0.12);
+  border: 1px solid rgba(229, 169, 60, 0.3);
+  color: #e5a93c;
 }
 
 .silver-badge {
-  background: rgba(148, 163, 184, 0.1);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(203, 213, 225, 0.1);
+  border: 1px solid rgba(203, 213, 225, 0.25);
   color: #cbd5e1;
 }
 
 .bronze-badge {
-  background: rgba(217, 119, 6, 0.1);
-  border: 1px solid rgba(217, 119, 6, 0.25);
-  color: #fb923c;
+  background: rgba(217, 119, 6, 0.12);
+  border: 1px solid rgba(217, 119, 6, 0.28);
+  color: #ea580c;
 }
 
-/* Minimal scrollbar */
+/* Minimal sleek scrollbar */
 ::-webkit-scrollbar {
   width: 3px;
   height: 3px;
@@ -88,14 +104,14 @@ button:active {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.24);
 }
 
-/* Hide scrollbars for pill selectors */
+/* Hide scrollbars for horizontal pill selectors */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

@@ -133,10 +133,10 @@ export default function MyTelegramPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
+          <h1 className="text-lg font-bold text-zinc-100 tracking-tight flex items-center gap-2">
             👤 My Telegram Footprint
           </h1>
-          <p className="text-xs text-slate-400 font-medium">
+          <p className="text-xs text-zinc-400 font-medium">
             Observed activity breakdown & community footprint
           </p>
         </div>
@@ -146,7 +146,7 @@ export default function MyTelegramPage() {
             setIsConnectOpen(true);
             hapticFeedback("light");
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold rounded-xl transition-colors tap-effect border border-sky-400/20"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl transition-all tap-effect border border-blue-400/20 shadow-sm"
         >
           <Smartphone className="w-3.5 h-3.5" /> Connect MTProto
         </button>
@@ -154,10 +154,10 @@ export default function MyTelegramPage() {
 
       {/* Connect Account Modal */}
       {isConnectOpen && (
-        <div className="bg-[#11151f] border border-sky-500/30 rounded-xl p-4 space-y-3 animate-in fade-in">
+        <div className="bg-[#12151e] border border-blue-500/30 rounded-2xl p-4 space-y-3 animate-in fade-in">
           <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-            <h3 className="text-xs font-bold text-zinc-100 uppercase tracking-wider flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-sky-400" /> Connect MTProto Session
+            <h3 className="text-xs font-bold text-zinc-100 uppercase font-mono tracking-wider flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-blue-400" /> Connect MTProto Session
             </h3>
             <button
               onClick={() => {
@@ -192,7 +192,7 @@ export default function MyTelegramPage() {
                   placeholder="+1234567890"
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-sky-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 font-mono font-medium"
                   required
                 />
               </div>
@@ -200,7 +200,7 @@ export default function MyTelegramPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-2.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-colors tap-effect"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all tap-effect border border-blue-400/20 shadow-sm"
               >
                 {isSubmitting ? "Sending Code via Telegram..." : "Send Verification Code"}
               </button>
@@ -208,7 +208,7 @@ export default function MyTelegramPage() {
           ) : (
             <form onSubmit={handleVerifyCode} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                   Telegram Login Code
                 </label>
                 <input
@@ -216,13 +216,13 @@ export default function MyTelegramPage() {
                   placeholder="12345"
                   value={codeInput}
                   onChange={(e) => setCodeInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-sky-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 font-mono font-medium"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                   2FA Password (if enabled)
                 </label>
                 <input
@@ -230,14 +230,14 @@ export default function MyTelegramPage() {
                   placeholder="Optional 2FA password"
                   value={passwordInput}
                   onChange={(e) => setPasswordInput(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-sky-500 font-medium"
+                  className="w-full px-3.5 py-2.5 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-blue-500 font-medium"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-black rounded-xl shadow-sm transition-all tap-effect"
+                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-all tap-effect border border-emerald-400/20 shadow-sm"
               >
                 {isSubmitting ? "Authenticating..." : "Authorize & Connect"}
               </button>
@@ -247,90 +247,90 @@ export default function MyTelegramPage() {
       )}
 
       {/* Master Footprint Metrics */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         <StatCard
           title="Observed Time"
           value={footprint?.formattedTotalDuration || "0m"}
           subtitle="Observed chats presence"
           icon={Clock}
-          iconColor="text-sky-400"
+          iconColor="text-blue-400"
         />
         <StatCard
           title="Messages Sent"
           value={footprint?.totalMessagesSent || 0}
           subtitle="Observable count"
           icon={MessageSquare}
-          iconColor="text-sky-400"
+          iconColor="text-blue-400"
         />
         <StatCard
           title="Active Groups"
           value={footprint?.activeGroupsCount || 0}
           subtitle="Community participation"
           icon={Users}
-          iconColor="text-sky-400"
+          iconColor="text-blue-400"
         />
         <StatCard
           title="Private Chats"
           value={footprint?.activePrivateChatsCount || 0}
           subtitle="Direct conversations"
           icon={UserCheck}
-          iconColor="text-sky-400"
+          iconColor="text-blue-400"
         />
       </div>
 
       {/* Chat Category Breakdown */}
-      <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm space-y-3">
-        <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+      <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-4 space-y-3.5">
+        <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
           Observed Activity Share
         </h4>
 
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           <div>
-            <div className="flex items-center justify-between text-xs mb-1 font-medium">
-              <span className="text-slate-300 flex items-center gap-1.5">
+            <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+              <span className="text-zinc-300 flex items-center gap-1.5">
                 👥 Group Chats
               </span>
-              <span className="font-mono font-bold text-sky-400">
+              <span className="font-mono font-bold text-blue-400">
                 {footprint?.chatBreakdown.groupsPercent || 0}%
               </span>
             </div>
-            <div className="h-2 rounded-full bg-black/40 overflow-hidden border border-white/[0.05]">
+            <div className="h-2 rounded-full bg-[#181c28] overflow-hidden border border-white/[0.05]">
               <div
-                className="h-full bg-sky-500 rounded-full transition-all"
+                className="h-full bg-blue-500 rounded-full transition-all"
                 style={{ width: `${footprint?.chatBreakdown.groupsPercent || 0}%` }}
               />
             </div>
           </div>
 
           <div>
-            <div className="flex items-center justify-between text-xs mb-1 font-medium">
-              <span className="text-slate-300 flex items-center gap-1.5">
+            <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+              <span className="text-zinc-300 flex items-center gap-1.5">
                 👤 Private Chats
               </span>
-              <span className="font-mono font-bold text-sky-300">
+              <span className="font-mono font-bold text-blue-300">
                 {footprint?.chatBreakdown.privateChatsPercent || 0}%
               </span>
             </div>
-            <div className="h-2 rounded-full bg-black/40 overflow-hidden border border-white/[0.05]">
+            <div className="h-2 rounded-full bg-[#181c28] overflow-hidden border border-white/[0.05]">
               <div
-                className="h-full bg-sky-400 rounded-full transition-all"
+                className="h-full bg-blue-400 rounded-full transition-all"
                 style={{ width: `${footprint?.chatBreakdown.privateChatsPercent || 0}%` }}
               />
             </div>
           </div>
 
           <div>
-            <div className="flex items-center justify-between text-xs mb-1 font-medium">
-              <span className="text-slate-300 flex items-center gap-1.5">
+            <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+              <span className="text-zinc-300 flex items-center gap-1.5">
                 📢 Channels
               </span>
-              <span className="font-mono font-bold text-sky-400">
+              <span className="font-mono font-bold text-blue-500">
                 {footprint?.chatBreakdown.channelsPercent || 0}%
               </span>
             </div>
-            <div className="h-2 rounded-full bg-black/40 overflow-hidden border border-white/[0.05]">
+            <div className="h-2 rounded-full bg-[#181c28] overflow-hidden border border-white/[0.05]">
               <div
-                className="h-full bg-sky-600 rounded-full transition-all"
+                className="h-full bg-blue-600 rounded-full transition-all"
                 style={{ width: `${footprint?.chatBreakdown.channelsPercent || 0}%` }}
               />
             </div>
@@ -339,34 +339,34 @@ export default function MyTelegramPage() {
       </div>
 
       {/* Observed Chats List */}
-      <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm space-y-3">
-        <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+      <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+        <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
           Observed Communities & Chats ({footprint?.chats.length || 0})
         </h4>
 
         {!footprint?.chats || footprint.chats.length === 0 ? (
-          <div className="text-center py-6 text-xs text-slate-400 font-medium">
+          <div className="text-center py-6 text-xs text-zinc-400 font-medium">
             No observed chats yet. Connect your Telegram or add groups to begin tracking chat footprints.
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {footprint.chats.map((c) => (
               <div
                 key={c.chatId}
-                className="p-3.5 bg-black/30 border border-white/[0.06] rounded-xl space-y-2 hover:border-white/[0.12] transition-all"
+                className="p-3.5 bg-[#181c28] border border-white/[0.06] rounded-xl space-y-2 hover:border-white/[0.12] transition-all"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5">
+                    <div className="text-xs font-bold text-zinc-100 flex items-center gap-1.5">
                       <span>{c.title}</span>
                       {c.customLabel && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 bg-sky-500/10 text-sky-300 border border-sky-500/20 rounded-md font-semibold">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-md font-semibold">
                           {c.customLabel}
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] text-slate-400 mt-0.5 font-medium">
-                      {c.messageCount} messages • <span className="font-mono">{c.formattedDuration}</span> active ({c.percentageOfActivity}% share)
+                    <div className="text-[11px] text-zinc-400 mt-0.5 font-medium">
+                      {c.messageCount} messages • <span className="font-mono text-zinc-300">{c.formattedDuration}</span> active ({c.percentageOfActivity}% share)
                     </div>
                   </div>
 
@@ -375,7 +375,7 @@ export default function MyTelegramPage() {
                       setEditingChatId(c.chatId);
                       setCustomLabelInput(c.customLabel || "");
                     }}
-                    className="p-2 rounded-lg bg-white/[0.05] text-slate-300 hover:text-white border border-white/[0.06] tap-effect"
+                    className="p-2 rounded-lg bg-white/[0.05] text-zinc-300 hover:text-white border border-white/[0.06] tap-effect"
                   >
                     <Tag className="w-3.5 h-3.5" />
                   </button>
@@ -388,17 +388,17 @@ export default function MyTelegramPage() {
                       placeholder="e.g. Work, Favorite Human"
                       value={customLabelInput}
                       onChange={(e) => setCustomLabelInput(e.target.value)}
-                      className="flex-1 px-3 py-1.5 bg-black/40 border border-white/[0.1] rounded-lg text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+                      className="flex-1 px-3 py-1.5 bg-black/40 border border-white/[0.1] rounded-lg text-xs text-zinc-100 focus:outline-none focus:border-blue-500"
                     />
                     <button
                       onClick={() => handleSaveLabel(c.chatId)}
-                      className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-lg tap-effect"
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg tap-effect"
                     >
                       Save
                     </button>
                     <button
                       onClick={() => setEditingChatId(null)}
-                      className="text-xs text-slate-400 hover:text-slate-200 tap-effect"
+                      className="text-xs text-zinc-400 hover:text-zinc-200 tap-effect"
                     >
                       Cancel
                     </button>
@@ -411,9 +411,9 @@ export default function MyTelegramPage() {
       </div>
 
       {/* Privacy Guarantee */}
-      <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl flex items-center gap-2.5 text-[11px] text-slate-400">
+      <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl flex items-center gap-2.5 text-[11px] text-zinc-400">
         <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-        <span>
+        <span className="leading-tight font-medium">
           Telegram Footprint only aggregates chats and communities where your authorized session has legitimate visibility. Message contents are never stored.
         </span>
       </div>

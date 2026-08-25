@@ -1,6 +1,7 @@
 import { Bot, Context } from "grammy";
 import { UserRepository } from "../repositories/user.repository";
 import { AccountRepository } from "../repositories/account.repository";
+import { DailyRepository } from "../repositories/daily.repository";
 import { AccountService } from "../services/account.service";
 import { AnalyticsService } from "../services/analytics.service";
 import { LeagueService } from "../services/league.service";
@@ -13,8 +14,8 @@ import { logger } from "@/lib/logger";
 const userSessionState = new Map<number, { state: string; data?: any }>();
 
 export function registerBotHandlers(bot: Bot) {
-  // 1. /start & /menu command — Interactive Choice Hub
-  const sendWelcomeChoiceHub = async (ctx: Context) => {
+  // 1. /start, /menu, /hub command — Interactive Choice Hub
+  const sendWelcomeChoiceHub = async (ctx: Context, edit: boolean = false) => {
     const tgUser = ctx.from;
     if (!tgUser) return;
 
@@ -32,66 +33,83 @@ export function registerBotHandlers(bot: Bot) {
       `🏆 *TELEGRAM LEAGUE — CHOICE HUB*\n` +
       `_Track. Compete. Get Roasted._\n\n` +
       `Welcome, *${tgUser.first_name || "Competitor"}*! Choose an action below:\n\n` +
-      `1️⃣ *Weekly League Standings* — Ranks, medals & gap to crown\n` +
-      `2️⃣ *My Stats & Footprint* — Personal presence & active chats\n` +
-      `3️⃣ *Roast Me* — Select intensity (Friendly, Normal, Brutal, Nuclear)\n` +
-      `4️⃣ *The Rival* — Head-to-head live score gap & rivalry\n` +
-      `5️⃣ *Mini-Awards* — Superlative shelf (Session King, Night Owl, etc.)\n` +
-      `6️⃣ *Competitor Slots* — Manage your 3 tracked accounts\n` +
-      `7️⃣ *Help & Rules* — Privacy policy & tournament rules\n\n` +
-      `👇 _Tap a numbered button below to proceed:_`;
+      `1️⃣ *Weekly League Ranks* — Standings, medals & crown gap\n` +
+      `2️⃣ *My Stats & Footprint* — Personal telemetry & active chats\n` +
+      `3️⃣ *Roast Me* — 4 intensities (Friendly, Normal, Brutal, Nuclear)\n` +
+      `4️⃣ *The Rival* — Head-to-head live score gap & battle\n` +
+      `5️⃣ *Weekly Bets & Odds* — Telemetry multipliers & payouts\n` +
+      `6️⃣ *Compare Competitors* — Side-by-side comparison table\n` +
+      `7️⃣ *Mini-Awards* — Superlatives (Session King, Night Owl, etc.)\n` +
+      `8️⃣ *Competitor Slots* — Manage your 3 tracked accounts\n` +
+      `9️⃣ *Help & Rules* — Privacy guarantee & tournament rules\n\n` +
+      `👇 _Tap a button or type a number (1-9) to proceed:_`;
 
-    await ctx.reply(welcomeText, {
-      parse_mode: "Markdown",
-      reply_markup: BotMenus.mainMenu(),
-    });
+    if (edit) {
+      await safeSendOrEdit(ctx, welcomeText, BotMenus.mainMenu(), true);
+    } else {
+      await ctx.reply(welcomeText, {
+        parse_mode: "Markdown",
+        reply_markup: BotMenus.mainMenu(),
+      });
 
-    // Also activate the bottom persistent reply keyboard
-    await ctx.reply(`🕹 *1-Tap Quick Navigation Active:*`, {
-      reply_markup: BotMenus.persistentReplyKeyboard(),
-    });
+      // Also activate the bottom persistent reply keyboard
+      await ctx.reply(`🕹 *1-Tap Quick Navigation Active:*`, {
+        reply_markup: BotMenus.persistentReplyKeyboard(),
+      });
+    }
   };
 
-  bot.command("start", sendWelcomeChoiceHub);
-  bot.command("menu", sendWelcomeChoiceHub);
-
-  // 2. /my command
-  bot.command("my", async (ctx) => {
-    await sendMyTelegramScreen(ctx);
+  bot.command(["start", "menu", "hub"], async (ctx) => {
+    await sendWelcomeChoiceHub(ctx, false);
   });
 
-  // 3. /league command
-  bot.command("league", async (ctx) => {
+  // 2. /league, /standings, /ranks
+  bot.command(["league", "standings", "ranks"], async (ctx) => {
     await sendLeagueScreen(ctx);
   });
 
-  // 4. /roast command
-  bot.command("roast", async (ctx) => {
+  // 3. /my, /stats, /me
+  bot.command(["my", "stats", "me"], async (ctx) => {
+    await sendMyTelegramScreen(ctx);
+  });
+
+  // 4. /roast, /roastme
+  bot.command(["roast", "roastme"], async (ctx) => {
     await sendRoastPickerScreen(ctx);
   });
 
-  // 5. /rival command
-  bot.command("rival", async (ctx) => {
+  // 5. /rival, /showdown
+  bot.command(["rival", "showdown"], async (ctx) => {
     await sendRivalPickerScreen(ctx);
   });
 
-  // 6. /footprint command
-  bot.command("footprint", async (ctx) => {
+  // 6. /bets, /wagers, /odds
+  bot.command(["bets", "wagers", "odds"], async (ctx) => {
+    await sendWagersScreen(ctx);
+  });
+
+  // 7. /compare, /versus
+  bot.command(["compare", "versus"], async (ctx) => {
+    await sendCompareScreen(ctx);
+  });
+
+  // 8. /footprint, /chats
+  bot.command(["footprint", "chats"], async (ctx) => {
     await sendFootprintScreen(ctx);
   });
 
-  // 7. /awards command
-  bot.command("awards", async (ctx) => {
+  // 9. /awards, /trophies
+  bot.command(["awards", "trophies"], async (ctx) => {
     await sendAwardsScreen(ctx);
   });
 
-  // 8. /dashboard command
+  // 10. /dashboard
   bot.command("dashboard", async (ctx) => {
     await sendDashboardScreen(ctx);
   });
 
-  // 9. /track command
-  bot.command("track", async (ctx) => {
+  // 11. /track, /add
+  bot.command(["track", "add"], async (ctx) => {
     if (ctx.from) {
       userSessionState.set(ctx.from.id, { state: "AWAITING_USERNAME" });
     }
@@ -103,13 +121,13 @@ export function registerBotHandlers(bot: Bot) {
     );
   });
 
-  // 10. /accounts command
-  bot.command("accounts", async (ctx) => {
+  // 12. /accounts, /slots
+  bot.command(["accounts", "slots"], async (ctx) => {
     await sendAccountsScreen(ctx);
   });
 
-  // 11. /help command
-  bot.command("help", async (ctx) => {
+  // 13. /help, /rules
+  bot.command(["help", "rules"], async (ctx) => {
     await sendHelpScreen(ctx);
   });
 
@@ -125,12 +143,7 @@ export function registerBotHandlers(bot: Bot) {
 
     try {
       if (data === "action:home") {
-        userSessionState.delete(tgUser.id);
-        const text =
-          `🏆 *TELEGRAM LEAGUE — CHOICE HUB*\n` +
-          `_Track. Compete. Get Roasted._\n\n` +
-          `Choose an action to proceed:`;
-        await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), true);
+        await sendWelcomeChoiceHub(ctx, true);
       } else if (data === "action:my") {
         await sendMyTelegramScreen(ctx, true);
       } else if (data === "action:league") {
@@ -153,6 +166,13 @@ export function registerBotHandlers(bot: Bot) {
         const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
         await LeagueService.setRival(user.id, rivalAccountId);
         await sendRivalScreen(ctx, true);
+      } else if (data === "action:wagers" || data === "action:bets") {
+        await sendWagersScreen(ctx, true);
+      } else if (data === "action:compare") {
+        await sendCompareScreen(ctx, true);
+      } else if (data.startsWith("action:compare_with:")) {
+        const accBId = data.replace("action:compare_with:", "");
+        await sendCompareScreen(ctx, true, accBId);
       } else if (data === "action:footprint") {
         await sendFootprintScreen(ctx, true);
       } else if (data === "action:awards") {
@@ -173,8 +193,8 @@ export function registerBotHandlers(bot: Bot) {
         );
       } else if (data === "action:accounts") {
         await sendAccountsScreen(ctx, true);
-      } else if (data.startsWith("action:view_acc:")) {
-        const accountId = data.replace("action:view_acc:", "");
+      } else if (data.startsWith("action:view_acc:") || data.startsWith("action:acc_overview:")) {
+        const accountId = data.replace("action:view_acc:", "").replace("action:acc_overview:", "");
         await sendAccountDetailScreen(ctx, accountId, true);
       } else if (data.startsWith("action:confirm_track:")) {
         const username = data.replace("action:confirm_track:", "");
@@ -248,21 +268,37 @@ export function registerBotHandlers(bot: Bot) {
     }
   });
 
-  // Handle text input & persistent reply keyboard buttons
+  // Handle text input & persistent reply keyboard buttons & numbered shortcuts
   bot.on("message:text", async (ctx) => {
     const tgUser = ctx.from;
     if (!tgUser) return;
 
-    const text = ctx.message.text.trim();
+    const rawText = ctx.message.text.trim();
+    const textLower = rawText.toLowerCase();
 
-    // 1. Check persistent keyboard triggers
-    if (text === "🏆 Weekly League" || text === "🏆 Telegram League") return sendLeagueScreen(ctx);
-    if (text === "👤 My Stats") return sendMyTelegramScreen(ctx);
-    if (text === "🔥 Roast Me") return sendRoastPickerScreen(ctx);
-    if (text === "⚔️ The Rival") return sendRivalPickerScreen(ctx);
-    if (text === "🕵️ Chat Footprint") return sendFootprintScreen(ctx);
-    if (text === "🎖 Mini-Awards") return sendAwardsScreen(ctx);
-    if (text === "➕ Add Competitor") {
+    // 1. Check numbered shortcuts & keyword triggers
+    if (rawText === "1" || textLower === "1" || rawText === "🏆 Weekly League" || rawText === "🏆 Telegram League" || textLower === "league" || textLower === "ranks" || textLower === "standings") {
+      return sendLeagueScreen(ctx);
+    }
+    if (rawText === "2" || textLower === "2" || rawText === "👤 My Stats" || textLower === "my" || textLower === "stats" || textLower === "my stats" || textLower === "me") {
+      return sendMyTelegramScreen(ctx);
+    }
+    if (rawText === "3" || textLower === "3" || rawText === "🔥 Roast Me" || textLower === "roast" || textLower === "roast me" || textLower === "roastme") {
+      return sendRoastPickerScreen(ctx);
+    }
+    if (rawText === "4" || textLower === "4" || rawText === "⚔️ The Rival" || textLower === "rival" || textLower === "the rival" || textLower === "showdown") {
+      return sendRivalPickerScreen(ctx);
+    }
+    if (rawText === "5" || textLower === "5" || rawText === "🎲 Weekly Bets" || textLower === "bets" || textLower === "wagers" || textLower === "odds") {
+      return sendWagersScreen(ctx);
+    }
+    if (rawText === "6" || textLower === "6" || rawText === "⚖️ Compare" || rawText === "⚔️ Compare" || textLower === "compare" || textLower === "versus") {
+      return sendCompareScreen(ctx);
+    }
+    if (rawText === "7" || textLower === "7" || rawText === "🎖 Mini-Awards" || textLower === "awards" || textLower === "trophies") {
+      return sendAwardsScreen(ctx);
+    }
+    if (rawText === "8" || textLower === "8" || rawText === "➕ Add Competitor" || textLower === "add" || textLower === "track" || textLower === "accounts" || textLower === "slots") {
       userSessionState.set(tgUser.id, { state: "AWAITING_USERNAME" });
       return ctx.reply(
         `➕ *Track a Telegram Competitor*\n\n` +
@@ -271,13 +307,21 @@ export function registerBotHandlers(bot: Bot) {
         { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
       );
     }
-    if (text === "⚙️ Main Menu" || text === "⚙️ Settings") return sendWelcomeChoiceHub(ctx);
+    if (rawText === "9" || textLower === "9" || textLower === "help" || textLower === "rules") {
+      return sendHelpScreen(ctx);
+    }
+    if (rawText === "⚙️ Choice Hub" || rawText === "⚙️ Main Menu" || textLower === "menu" || textLower === "hub" || textLower === "start") {
+      return sendWelcomeChoiceHub(ctx);
+    }
+    if (rawText === "🕵️ Chat Footprint" || textLower === "footprint" || textLower === "chats") {
+      return sendFootprintScreen(ctx);
+    }
 
     // 2. Check pending input state
     const userState = userSessionState.get(tgUser.id);
-    if (userState?.state === "AWAITING_USERNAME") {
+    if (userState?.state === "AWAITING_USERNAME" || rawText.startsWith("@") || rawText.includes("t.me/")) {
       userSessionState.delete(tgUser.id);
-      const username = normalizeUsername(text);
+      const username = normalizeUsername(rawText);
 
       if (!username || username.length < 3) {
         await ctx.reply("❌ Invalid username. Please send a valid username (e.g. `@fuadtesfaye`).", {
@@ -310,7 +354,16 @@ export function registerBotHandlers(bot: Bot) {
           reply_markup: BotMenus.trackConfirmMenu(target.username!),
         }
       );
+      return;
     }
+
+    // 3. Fallback guidance for unrecognized inputs
+    await ctx.reply(
+      `💡 Choose an option from the menu below, or tap a numbered option (1-9):`,
+      {
+        reply_markup: BotMenus.mainMenu(),
+      }
+    );
   });
 }
 
@@ -400,12 +453,12 @@ async function sendLeagueScreen(ctx: Context, edit: boolean = false) {
 
   const medals = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
   const rows = leaderboard.competitors
-    .map((c, i) => `${medals[i] || "•"} *${c.displayName}*\n   \`${c.formattedDuration}\` (${c.sessionCount} sessions)\n   ${c.title}`)
+    .map((c, i) => `${medals[i] || "•"} *${c.displayName}*\n   \`${c.formattedDuration}\` (${c.sessionCount} sessions)\n   _${c.title}_`)
     .join("\n\n");
 
   const runnerUp = leaderboard.competitors[1];
   const gapText = runnerUp
-    ? `\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n👀 *Battle for the Crown:*\n*${runnerUp.displayName}* is only \`${runnerUp.formattedGapToLeader}\` away from stealing the crown!`
+    ? `\n\n━━━━━━━━━━━━━━━━━━━━━━━━\n👀 *Battle for the Crown:*\n*${runnerUp.displayName}* is only \`${runnerUp.formattedGapToLeader}\` behind #1!`
     : "";
 
   const text =
@@ -495,6 +548,104 @@ async function sendRivalScreen(ctx: Context, edit: boolean = false) {
   return sendRivalPickerScreen(ctx, edit);
 }
 
+async function sendWagersScreen(ctx: Context, edit: boolean = false) {
+  const tgUser = ctx.from;
+  if (!tgUser) return;
+
+  const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
+  const accounts = await AccountRepository.listByOwner(user.id);
+
+  if (accounts.length === 0) {
+    const text = `🎲 *Weekly Wagers & Odds*\n\nEnroll accounts to generate live telemetry betting odds!`;
+    await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
+    return;
+  }
+
+  const now = new Date();
+  const startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const endDate = now.toISOString().split("T")[0];
+
+  const stats = await Promise.all(
+    accounts.map(async (acc) => {
+      const dailies = await DailyRepository.listByRange(acc.id, startDate, endDate);
+      const totalSecs = dailies.reduce((sum, d) => sum + (d.activeSeconds || 0), 0);
+      return { acc, totalSecs };
+    })
+  );
+
+  const totalPool = Math.max(1, stats.reduce((sum, s) => sum + s.totalSecs, 0));
+  stats.sort((a, b) => b.totalSecs - a.totalSecs);
+
+  const oddsRows = stats.map((s, idx) => {
+    const share = s.totalSecs / totalPool;
+    let rawOdds: number;
+    let role: string;
+
+    if (idx === 0) {
+      role = "⭐ FAVORITE";
+      rawOdds = Math.max(1.25, Math.min(1.85, 1 / Math.max(0.4, share)));
+    } else if (idx === 1) {
+      role = "⚔️ CONTENDER";
+      rawOdds = Math.max(1.95, Math.min(3.2, 1 / Math.max(0.2, share)));
+    } else {
+      role = "🔥 UNDERDOG";
+      rawOdds = Math.max(3.5, Math.min(8.0, 1 / Math.max(0.1, share)));
+    }
+
+    const hours = Math.floor(s.totalSecs / 3600);
+    const mins = Math.floor((s.totalSecs % 3600) / 60);
+
+    return `• *${s.acc.displayName || "@" + s.acc.username}* [${role}]\n   Odds: \`${rawOdds.toFixed(2)}x\` • 7d: \`${hours}h ${mins}m\``;
+  });
+
+  const text =
+    `🎲 *LIVE TELEMETRY WAGERS & ODDS*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `Weekly Points Balance: \`1000 PTS\`\n\n` +
+    oddsRows.join("\n\n") +
+    `\n\n_Lock in your prediction slips directly in the Telegram Mini App!_`;
+
+  await safeSendOrEdit(ctx, text, BotMenus.wagersMenu(), edit);
+}
+
+async function sendCompareScreen(ctx: Context, edit: boolean = false, overrideBId?: string) {
+  const tgUser = ctx.from;
+  if (!tgUser) return;
+
+  const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
+  const accounts = await AccountRepository.listByOwner(user.id);
+
+  if (accounts.length < 2) {
+    const text = `⚖️ *Compare Accounts*\n\nTrack at least 2 accounts to view side-by-side presence metrics!`;
+    await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
+    return;
+  }
+
+  const accA = accounts[0];
+  const accB = overrideBId
+    ? accounts.find((a) => a.id === overrideBId) || accounts[1]
+    : accounts[1];
+
+  const overviewA = await AnalyticsService.getAccountOverview(accA.id);
+  const overviewB = await AnalyticsService.getAccountOverview(accB.id);
+
+  const nameA = accA.displayName || "@" + accA.username;
+  const nameB = accB.displayName || "@" + accB.username;
+
+  const text =
+    `⚖️ *SIDE-BY-SIDE PRESENCE COMPARISON*\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+    `🔵 *${nameA}* vs 🟣 *${nameB}*\n\n` +
+    `• *Today:* \`${overviewA?.today.formattedDuration || "0m"}\` vs \`${overviewB?.today.formattedDuration || "0m"}\`\n` +
+    `• *7-Day Total:* \`${overviewA?.sevenDays.formattedDuration || "0m"}\` vs \`${overviewB?.sevenDays.formattedDuration || "0m"}\`\n` +
+    `• *7-Day Sessions:* \`${overviewA?.sevenDays.sessionCount || 0}\` vs \`${overviewB?.sevenDays.sessionCount || 0}\`\n` +
+    `• *Avg Session:* \`${formatDuration(overviewA?.sevenDays.averageSessionSeconds || 0)}\` vs \`${formatDuration(overviewB?.sevenDays.averageSessionSeconds || 0)}\`\n` +
+    `• *Peak Hour:* \`${overviewA?.sevenDays.peakHour || 0}:00\` vs \`${overviewB?.sevenDays.peakHour || 0}:00\`\n` +
+    `• *Active Streak:* \`${overviewA?.streaks.currentStreakDays || 0}d\` vs \`${overviewB?.streaks.currentStreakDays || 0}d\``;
+
+  await safeSendOrEdit(ctx, text, BotMenus.compareMenu(accounts, accA.id, accB.id), edit);
+}
+
 async function sendAwardsScreen(ctx: Context, edit: boolean = false) {
   const tgUser = ctx.from;
   if (!tgUser) return;
@@ -581,16 +732,22 @@ async function sendHelpScreen(ctx: Context, edit: boolean = false) {
     `• *Weekly League*: Compete with 3 accounts in weekly presence tournaments.\n` +
     `• *The Rival*: Designate 1 account as your rival for live score gap alerts.\n` +
     `• *Roast Me*: Deterministic roasts across 4 levels (Friendly, Normal, Brutal, Nuclear).\n` +
+    `• *Live Odds & Bets*: Telemetry multipliers updated live.\n` +
     `• *Observed Footprint*: Aggregates chat & community presence where authorized.\n\n` +
-    `*Commands:*\n` +
-    `/start or /menu - Choice Hub\n` +
-    `/my - My stats & footprint\n` +
-    `/league - Current standings\n` +
-    `/roast - Roast selector\n` +
-    `/rival - Rival showdown\n` +
-    `/footprint - Community activity\n` +
-    `/awards - Weekly superlatives\n` +
-    `/track - Add competitor`;
+    `*All Available Commands:*\n` +
+    `/start or /menu — Open Interactive Choice Hub\n` +
+    `/league — Weekly Championship standings & crown gap\n` +
+    `/my — Personal observed telemetry & chat report\n` +
+    `/roast — Satirical roast generator (4 levels)\n` +
+    `/rival — Head-to-head rivalry showdown\n` +
+    `/bets — Live telemetry multipliers & odds\n` +
+    `/compare — Side-by-side presence comparison\n` +
+    `/footprint — Observed community participation share\n` +
+    `/awards — Superlatives shelf & weekly trophies\n` +
+    `/track — Enroll a new competitor slot\n` +
+    `/accounts — Competitor slots manager\n` +
+    `/dashboard — Master overview of all slots\n` +
+    `/help — Rules and guidance`;
 
   await safeSendOrEdit(ctx, text, BotMenus.mainMenu(), edit);
 }
@@ -614,7 +771,7 @@ async function sendAccountDetailScreen(ctx: Context, accountId: string, edit: bo
 
   const text =
     `👤 *${acc.displayName || "@" + acc.username}*\n` +
-    `${statusPill} — ${title}\n\n` +
+    `${statusPill} — _${title}_\n\n` +
     `• *Observed Today:* \`${overview.today.formattedDuration}\` (${overview.today.sessionCount} sessions)\n` +
     `• *7-Day Total:* \`${overview.sevenDays.formattedDuration}\`\n` +
     `• *Peak Hour:* \`${overview.sevenDays.peakHour}:00 - ${overview.sevenDays.peakHour + 1}:00\`\n` +
@@ -627,3 +784,4 @@ async function sendAccountDetailScreen(ctx: Context, accountId: string, edit: bo
     edit
   );
 }
+

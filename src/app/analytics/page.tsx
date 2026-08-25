@@ -78,10 +78,10 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
+        <h1 className="text-lg font-bold text-zinc-100 tracking-tight flex items-center gap-2">
           📊 Activity Intelligence
         </h1>
-        <p className="text-xs text-slate-400 font-medium">
+        <p className="text-xs text-zinc-400 font-medium">
           Presence distribution, quiet windows & all-time telemetry records
         </p>
       </div>
@@ -99,7 +99,7 @@ export default function AnalyticsPage() {
       ) : (
         <>
           {/* Account Selector Horizontal Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
             {accounts.map((acc) => {
               const isSelected = selectedAccountId === acc.id;
               return (
@@ -109,10 +109,10 @@ export default function AnalyticsPage() {
                     setSelectedAccountId(acc.id);
                     hapticFeedback("light");
                   }}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all border tap-effect ${
                     isSelected
-                      ? "bg-sky-500/15 text-sky-300 border-sky-500/40 shadow-sm"
-                      : "bg-[#111622]/80 text-slate-400 border-white/[0.06] hover:text-slate-200"
+                      ? "bg-blue-500/15 text-blue-400 border-blue-500/30 font-bold"
+                      : "bg-[#12151e] text-zinc-400 border-white/[0.06] hover:text-zinc-200"
                   }`}
                 >
                   {acc.displayName || "@" + acc.username}
@@ -128,49 +128,49 @@ export default function AnalyticsPage() {
           />
 
           {/* Quiet Hours & Records */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             <StatCard
               title="Quiet Window"
               value={`${overview?.quietHours.startHour.toString().padStart(2, "0")}:00 - ${overview?.quietHours.endHour.toString().padStart(2, "0")}:00`}
               subtitle="Consistently lowest activity"
               icon={Moon}
-              iconColor="text-sky-400"
+              iconColor="text-blue-400"
             />
             <StatCard
               title="Longest Session"
               value={formatDuration(overview?.personalBests.longestSessionSeconds || 0)}
               subtitle="Personal record"
               icon={Trophy}
-              iconColor="text-sky-400"
+              iconColor="text-amber-400"
             />
             <StatCard
               title="Peak Day Total"
               value={formatDuration(overview?.personalBests.highestDailyActivitySeconds || 0)}
               subtitle={overview?.personalBests.highestDailyDate || "Recent"}
               icon={Zap}
-              iconColor="text-sky-400"
+              iconColor="text-purple-400"
             />
             <StatCard
               title="Current Streak"
               value={`${overview?.streaks.currentStreakDays || 0} Days`}
               subtitle={`Longest: ${overview?.streaks.longestStreakDays || 0}d`}
               icon={Flame}
-              iconColor="text-sky-400"
+              iconColor="text-rose-400"
             />
           </div>
 
           {/* Period Comparisons */}
-          <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm space-y-3">
-            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+          <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+            <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">
               Period Trend Analysis
             </h4>
 
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-black/30 border border-white/[0.05]">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#181c28] border border-white/[0.06]">
               <div>
-                <div className="text-xs font-bold text-slate-200">
+                <div className="text-xs font-bold text-zinc-200">
                   7-Day Rolling Trend
                 </div>
-                <div className="text-[10px] text-slate-400 font-medium">
+                <div className="text-[10px] text-zinc-400 font-medium">
                   Compared with previous 7-day period
                 </div>
               </div>
@@ -182,25 +182,25 @@ export default function AnalyticsPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between p-3.5 rounded-xl bg-black/30 border border-white/[0.05]">
+            <div className="flex items-center justify-between p-3.5 rounded-xl bg-[#181c28] border border-white/[0.06]">
               <div>
-                <div className="text-xs font-bold text-slate-200">
+                <div className="text-xs font-bold text-zinc-200">
                   30-Day Total Presence
                 </div>
-                <div className="text-[10px] text-slate-400 font-medium">
+                <div className="text-[10px] text-zinc-400 font-medium">
                   Coverage: {overview?.thirtyDays.coverageStatus}
                 </div>
               </div>
-              <div className="text-xs font-mono font-black text-sky-400 tabular-nums">
+              <div className="text-xs font-mono font-bold text-blue-400 tabular-nums">
                 {overview?.thirtyDays.formattedDuration}
               </div>
             </div>
           </div>
 
           {/* Data Semantics Card */}
-          <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl flex items-center gap-2.5 text-[11px] text-slate-400">
-            <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
-            <span>
+          <div className="p-3 bg-white/[0.02] border border-white/[0.05] rounded-2xl flex items-center gap-2.5 text-[11px] text-zinc-400">
+            <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="leading-tight font-medium">
               All metrics are calculated deterministically from observable presence sessions. Telemetr does not make arbitrary assumptions.
             </span>
           </div>

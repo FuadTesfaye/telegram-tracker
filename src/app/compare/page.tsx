@@ -48,10 +48,10 @@ export default function ComparePage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-black text-slate-100 tracking-tight flex items-center gap-2">
+        <h1 className="text-lg font-bold text-zinc-100 tracking-tight flex items-center gap-2">
           ⚔️ Compare Accounts
         </h1>
-        <p className="text-xs text-slate-400 font-medium">
+        <p className="text-xs text-zinc-400 font-medium">
           Side-by-side observable presence analysis
         </p>
       </div>
@@ -71,7 +71,7 @@ export default function ComparePage() {
           {/* Selectors */}
           <div className="grid grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+              <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                 Account A
               </label>
               <select
@@ -80,7 +80,7 @@ export default function ComparePage() {
                   setAccA(e.target.value);
                   hapticFeedback("light");
                 }}
-                className="w-full px-3 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-sky-500 font-medium"
+                className="w-full px-3.5 py-2.5 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-blue-500 font-medium"
               >
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -91,7 +91,7 @@ export default function ComparePage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-300 mb-1">
+              <label className="block text-[11px] font-semibold text-zinc-300 mb-1">
                 Account B
               </label>
               <select
@@ -100,7 +100,7 @@ export default function ComparePage() {
                   setAccB(e.target.value);
                   hapticFeedback("light");
                 }}
-                className="w-full px-3 py-2.5 bg-black/40 border border-white/[0.09] rounded-xl text-xs text-slate-100 focus:outline-none focus:border-sky-500 font-medium"
+                className="w-full px-3.5 py-2.5 bg-[#181c28] border border-white/[0.08] rounded-xl text-xs text-zinc-100 focus:outline-none focus:border-blue-500 font-medium"
               >
                 {accounts.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -112,16 +112,16 @@ export default function ComparePage() {
           </div>
 
           {dataA && dataB && (
-            <div className="glass-card bg-[#111622]/80 border border-white/[0.07] rounded-2xl p-4 shadow-sm space-y-4">
+            <div className="bg-[#12151e] border border-white/[0.08] rounded-2xl p-4 space-y-4">
               {/* Header row */}
               <div className="grid grid-cols-3 gap-2 text-center text-xs pb-3 border-b border-white/[0.06]">
-                <span className="font-bold text-sky-400 truncate">
+                <span className="font-bold text-blue-400 truncate">
                   {dataA.account.displayName || "@" + dataA.account.username}
                 </span>
-                <span className="font-bold text-slate-400 uppercase text-[10px] tracking-wider">
+                <span className="font-mono font-bold text-zinc-400 uppercase text-[10px] tracking-wider">
                   Metric
                 </span>
-                <span className="font-bold text-sky-400 truncate">
+                <span className="font-bold text-blue-400 truncate">
                   {dataB.account.displayName || "@" + dataB.account.username}
                 </span>
               </div>
@@ -129,61 +129,61 @@ export default function ComparePage() {
               {/* Rows */}
               <div className="space-y-3 text-xs">
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataA.today.formattedDuration}
                   </span>
-                  <span className="text-slate-400 text-[11px] font-medium">Observed Today</span>
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="text-zinc-400 text-[11px] font-medium">Observed Today</span>
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataB.today.formattedDuration}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataA.sevenDays.formattedDuration}
                   </span>
-                  <span className="text-slate-400 text-[11px] font-medium">7-Day Total</span>
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="text-zinc-400 text-[11px] font-medium">7-Day Total</span>
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataB.sevenDays.formattedDuration}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataA.sevenDays.sessionCount}
                   </span>
-                  <span className="text-slate-400 text-[11px] font-medium">7-Day Sessions</span>
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="text-zinc-400 text-[11px] font-medium">7-Day Sessions</span>
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataB.sevenDays.sessionCount}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {formatDuration(dataA.sevenDays.averageSessionSeconds)}
                   </span>
-                  <span className="text-slate-400 text-[11px] font-medium">Avg Session</span>
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="text-zinc-400 text-[11px] font-medium">Avg Session</span>
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {formatDuration(dataB.sevenDays.averageSessionSeconds)}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataA.sevenDays.peakHour}:00
                   </span>
-                  <span className="text-slate-400 text-[11px] font-medium">Peak Hour</span>
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="text-zinc-400 text-[11px] font-medium">Peak Hour</span>
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataB.sevenDays.peakHour}:00
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-center items-center py-1">
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataA.streaks.currentStreakDays}d
                   </span>
-                  <span className="text-slate-400 text-[11px] font-medium">Active Streak</span>
-                  <span className="font-mono font-bold text-slate-100">
+                  <span className="text-zinc-400 text-[11px] font-medium">Active Streak</span>
+                  <span className="font-mono font-bold text-zinc-100 tabular-nums">
                     {dataB.streaks.currentStreakDays}d
                   </span>
                 </div>
