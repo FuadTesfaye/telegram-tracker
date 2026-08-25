@@ -276,6 +276,53 @@ export function registerBotHandlers(bot: Bot) {
     const rawText = ctx.message.text.trim();
     const textLower = rawText.toLowerCase();
 
+    // 0. Explicit slash command matching
+    if (textLower === "/start" || textLower === "/menu" || textLower === "/hub") {
+      return sendWelcomeChoiceHub(ctx, false);
+    }
+    if (textLower === "/league" || textLower === "/standings" || textLower === "/ranks") {
+      return sendLeagueScreen(ctx);
+    }
+    if (textLower === "/my" || textLower === "/stats" || textLower === "/me") {
+      return sendMyTelegramScreen(ctx);
+    }
+    if (textLower === "/roast" || textLower === "/roastme") {
+      return sendRoastPickerScreen(ctx);
+    }
+    if (textLower === "/rival" || textLower === "/showdown") {
+      return sendRivalPickerScreen(ctx);
+    }
+    if (textLower === "/bets" || textLower === "/wagers" || textLower === "/odds") {
+      return sendWagersScreen(ctx);
+    }
+    if (textLower === "/compare" || textLower === "/versus") {
+      return sendCompareScreen(ctx);
+    }
+    if (textLower === "/footprint" || textLower === "/chats") {
+      return sendFootprintScreen(ctx);
+    }
+    if (textLower === "/awards" || textLower === "/trophies") {
+      return sendAwardsScreen(ctx);
+    }
+    if (textLower === "/track" || textLower === "/add") {
+      userSessionState.set(tgUser.id, { state: "AWAITING_USERNAME" });
+      return ctx.reply(
+        `➕ *Track a Telegram Competitor*\n\n` +
+        `Send the public Telegram username to add to your competition (up to 3 slots):\n\n` +
+        `_Example:_ \`@fuadtesfaye\` or \`@username\``,
+        { parse_mode: "Markdown", reply_markup: BotMenus.backToMain() }
+      );
+    }
+    if (textLower === "/accounts" || textLower === "/slots") {
+      return sendAccountsScreen(ctx);
+    }
+    if (textLower === "/dashboard") {
+      return sendDashboardScreen(ctx);
+    }
+    if (textLower === "/help" || textLower === "/rules") {
+      return sendHelpScreen(ctx);
+    }
+
     // 1. Check numbered shortcuts & keyword triggers
     if (rawText === "1" || textLower === "1" || rawText === "🏆 Weekly League" || rawText === "🏆 Telegram League" || textLower === "league" || textLower === "ranks" || textLower === "standings") {
       return sendLeagueScreen(ctx);
