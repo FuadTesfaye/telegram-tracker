@@ -179,7 +179,7 @@ async function runUserSimulation() {
   console.log("-------------------------------------------------");
   console.log("STEP 4: Switch Roast Level to Brutal");
   console.log("-------------------------------------------------");
-  await sendCallbackQuery("action:set_roast_lvl:brutal:top");
+  await sendCallbackQuery("r_lvl:brutal:top");
 
   // --- Step 5: User sends /rival command ---
   console.log("-------------------------------------------------");
@@ -234,7 +234,9 @@ async function runUserSimulation() {
   console.log("=================================================");
 }
 
-runUserSimulation().catch((err) => {
-  console.error("❌ Simulation failed:", err);
-  process.exit(1);
-});
+runUserSimulation()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error("❌ Simulation failed:", err);
+    process.exit(1);
+  });

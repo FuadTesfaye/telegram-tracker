@@ -13,6 +13,22 @@ import { logger } from "@/lib/logger";
 
 const userSessionState = new Map<number, { state: string; data?: any }>();
 
+export const BOT_COMMANDS = [
+  { command: "start", description: "🚀 Open Interactive Choice Hub & Menu" },
+  { command: "league", description: "🏆 Weekly Championship Standings & Gap" },
+  { command: "my", description: "👤 My Observed Stats & Footprint" },
+  { command: "roast", description: "🔥 Satirical Roast Engine (4 Levels)" },
+  { command: "rival", description: "⚔️ Head-to-Head Rivalry & Live Gap" },
+  { command: "bets", description: "🎲 Telemetry-Backed Weekly Wagers & Odds" },
+  { command: "compare", description: "⚖️ Side-by-Side Competitor Comparison" },
+  { command: "footprint", description: "🕵️ Observed Chat & Community Presence" },
+  { command: "awards", description: "🎖 Weekly Superlatives & Badges" },
+  { command: "track", description: "➕ Enroll New Competitor (3 Slots)" },
+  { command: "accounts", description: "📋 Manage Competitor Slots & Tracking" },
+  { command: "dashboard", description: "📊 Master Activity Overview" },
+  { command: "help", description: "📖 Rules, Privacy & Guidance" },
+];
+
 export function registerBotHandlers(bot: Bot) {
   // 1. /start, /menu, /hub command — Interactive Choice Hub
   const sendWelcomeChoiceHub = async (ctx: Context, edit: boolean = false) => {
@@ -142,46 +158,50 @@ export function registerBotHandlers(bot: Bot) {
     } catch {}
 
     try {
-      if (data === "action:home") {
+      if (data === "action:home" || data === "r_home") {
         await sendWelcomeChoiceHub(ctx, true);
-      } else if (data === "action:my") {
+      } else if (data === "action:my" || data === "r_my") {
         await sendMyTelegramScreen(ctx, true);
-      } else if (data === "action:league") {
+      } else if (data === "action:league" || data === "r_league") {
         await sendLeagueScreen(ctx, true);
-      } else if (data === "action:roast" || data === "action:roast_picker") {
+      } else if (data === "action:roast" || data === "action:roast_picker" || data === "r_roast") {
         await sendRoastPickerScreen(ctx, undefined, "normal", true);
-      } else if (data.startsWith("action:select_roast_acc:")) {
-        const accountId = data.replace("action:select_roast_acc:", "");
+      } else if (data.startsWith("action:select_roast_acc:") || data.startsWith("r_acc:")) {
+        const accountId = data.replace("action:select_roast_acc:", "").replace("r_acc:", "");
         await sendRoastPickerScreen(ctx, accountId, "normal", true);
-      } else if (data.startsWith("action:set_roast_lvl:")) {
-        const [, , lvl, accId] = data.split(":");
+      } else if (data.startsWith("action:set_roast_lvl:") || data.startsWith("r_lvl:")) {
+        const parts = data.split(":");
+        const lvl = parts[parts.length - 2];
+        const accId = parts[parts.length - 1];
         await sendRoastPickerScreen(ctx, accId === "top" ? undefined : accId, lvl as RoastLevel, true);
-      } else if (data.startsWith("action:re_roast:")) {
-        const [, , accId, lvl] = data.split(":");
+      } else if (data.startsWith("action:re_roast:") || data.startsWith("r_again:")) {
+        const parts = data.split(":");
+        const accId = parts[parts.length - 2];
+        const lvl = parts[parts.length - 1];
         await sendRoastPickerScreen(ctx, accId === "top" ? undefined : accId, lvl as RoastLevel, true);
-      } else if (data === "action:rival" || data === "action:rival_picker") {
+      } else if (data === "action:rival" || data === "action:rival_picker" || data === "r_rival_menu") {
         await sendRivalPickerScreen(ctx, true);
-      } else if (data.startsWith("action:set_rival:")) {
-        const rivalAccountId = data.replace("action:set_rival:", "");
+      } else if (data.startsWith("action:set_rival:") || data.startsWith("r_rival:")) {
+        const rivalAccountId = data.replace("action:set_rival:", "").replace("r_rival:", "");
         const user = await UserRepository.findOrCreate({ telegramId: tgUser.id });
         await LeagueService.setRival(user.id, rivalAccountId);
         await sendRivalScreen(ctx, true);
-      } else if (data === "action:wagers" || data === "action:bets") {
+      } else if (data === "action:wagers" || data === "action:bets" || data === "r_wagers") {
         await sendWagersScreen(ctx, true);
-      } else if (data === "action:compare") {
+      } else if (data === "action:compare" || data === "r_compare") {
         await sendCompareScreen(ctx, true);
-      } else if (data.startsWith("action:compare_with:")) {
-        const accBId = data.replace("action:compare_with:", "");
+      } else if (data.startsWith("action:compare_with:") || data.startsWith("cmp_with:")) {
+        const accBId = data.replace("action:compare_with:", "").replace("cmp_with:", "");
         await sendCompareScreen(ctx, true, accBId);
-      } else if (data === "action:footprint") {
+      } else if (data === "action:footprint" || data === "r_footprint") {
         await sendFootprintScreen(ctx, true);
-      } else if (data === "action:awards") {
+      } else if (data === "action:awards" || data === "r_awards") {
         await sendAwardsScreen(ctx, true);
-      } else if (data === "action:dashboard") {
+      } else if (data === "action:dashboard" || data === "r_dashboard") {
         await sendDashboardScreen(ctx, true);
-      } else if (data === "action:help") {
+      } else if (data === "action:help" || data === "r_help") {
         await sendHelpScreen(ctx, true);
-      } else if (data === "action:track") {
+      } else if (data === "action:track" || data === "r_track") {
         userSessionState.set(tgUser.id, { state: "AWAITING_USERNAME" });
         await safeSendOrEdit(
           ctx,
@@ -191,13 +211,20 @@ export function registerBotHandlers(bot: Bot) {
           BotMenus.backToMain(),
           true
         );
-      } else if (data === "action:accounts") {
+      } else if (data === "action:accounts" || data === "r_accounts") {
         await sendAccountsScreen(ctx, true);
-      } else if (data.startsWith("action:view_acc:") || data.startsWith("action:acc_overview:")) {
-        const accountId = data.replace("action:view_acc:", "").replace("action:acc_overview:", "");
+      } else if (
+        data.startsWith("action:view_acc:") ||
+        data.startsWith("acc_v:") ||
+        data.startsWith("action:acc_overview:")
+      ) {
+        const accountId = data
+          .replace("action:view_acc:", "")
+          .replace("acc_v:", "")
+          .replace("action:acc_overview:", "");
         await sendAccountDetailScreen(ctx, accountId, true);
-      } else if (data.startsWith("action:confirm_track:")) {
-        const username = data.replace("action:confirm_track:", "");
+      } else if (data.startsWith("action:confirm_track:") || data.startsWith("trk_ok:")) {
+        const username = data.replace("action:confirm_track:", "").replace("trk_ok:", "");
         const user = await UserRepository.findByTelegramId(tgUser.id);
         if (!user) return;
 
@@ -220,8 +247,8 @@ export function registerBotHandlers(bot: Bot) {
             true
           );
         }
-      } else if (data.startsWith("action:toggle_track:")) {
-        const accountId = data.replace("action:toggle_track:", "");
+      } else if (data.startsWith("action:toggle_track:") || data.startsWith("acc_tog:")) {
+        const accountId = data.replace("action:toggle_track:", "").replace("acc_tog:", "");
         const acc = await AccountRepository.findById(accountId);
         if (!acc) return;
 
@@ -242,8 +269,8 @@ export function registerBotHandlers(bot: Bot) {
             true
           );
         }
-      } else if (data.startsWith("action:delete_acc:")) {
-        const accountId = data.replace("action:delete_acc:", "");
+      } else if (data.startsWith("action:delete_acc:") || data.startsWith("acc_del:")) {
+        const accountId = data.replace("action:delete_acc:", "").replace("acc_del:", "");
         await AccountService.deleteAccount(accountId);
         await safeSendOrEdit(
           ctx,
@@ -421,10 +448,23 @@ async function safeSendOrEdit(ctx: Context, text: string, replyMarkup: any, edit
       await ctx.editMessageText(text, { parse_mode: "Markdown", reply_markup: replyMarkup });
       return;
     } catch {
-      // fallback
+      try {
+        await ctx.editMessageText(text.replace(/[*_`\[\]()]/g, ""), { reply_markup: replyMarkup });
+        return;
+      } catch {
+        // Fallback to sending new message if edit fails
+      }
     }
   }
-  await ctx.reply(text, { parse_mode: "Markdown", reply_markup: replyMarkup });
+  try {
+    await ctx.reply(text, { parse_mode: "Markdown", reply_markup: replyMarkup });
+  } catch {
+    try {
+      await ctx.reply(text.replace(/[*_`\[\]()]/g, ""), { reply_markup: replyMarkup });
+    } catch (err) {
+      logger.error("Failed to send message in safeSendOrEdit", { error: err });
+    }
+  }
 }
 
 // --- Screen Builders ---

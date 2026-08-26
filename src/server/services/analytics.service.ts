@@ -12,6 +12,8 @@ import type {
   CoverageStatus,
 } from "@/types";
 
+import { cache } from "@/lib/cache";
+
 export class AnalyticsService {
   /**
    * Generates a comprehensive analytical overview for a tracked account
@@ -20,47 +22,49 @@ export class AnalyticsService {
     accountId: string,
     timezone: string = "UTC"
   ): Promise<AccountAnalyticsOverview | null> {
-    const account = await AccountRepository.findById(accountId);
-    if (!account) return null;
+    const cacheKey = `analytics:overview:${accountId}:${timezone}`;
+    return cache.getOrSet(cacheKey, async () => {
+      const account = await AccountRepository.findById(accountId);
+      if (!account) return null;
 
-    const todayStr = this.getTodayDateString(timezone);
-    const sevenDaysAgoStr = this.getPastDateString(7, timezone);
-    const fourteenDaysAgoStr = this.getPastDateString(14, timezone);
-    const thirtyDaysAgoStr = this.getPastDateString(30, timezone);
+      const todayStr = this.getTodayDateString(timezone);
+      const sevenDaysAgoStr = this.getPastDateString(7, timezone);
+      const fourteenDaysAgoStr = this.getPastDateString(14, timezone);
+      const thirtyDaysAgoStr = this.getPastDateString(30, timezone);
 
-    // 1. Today summary
-    const todayDaily = await DailyRepository.findByAccountAndDate(accountId, todayStr);
-    const todaySummary = this.buildSummary(todayDaily, account.trackingStartedAt);
+      const [
+        todayDaily,
+        past7Days,
+        past14Days,
+        past30Days,
+        allDays,
+        hourlyData
+      ] = await Promise.all([
+        DailyRepository.findByAccountAndDate(accountId, todayStr),
+        DailyRepository.listByRange(accountId, sevenDaysAgoStr, todayStr),
+        DailyRepository.listByRange(accountId, fourteenDaysAgoStr, todayStr),
+        DailyRepository.listByRange(accountId, thirtyDaysAgoStr, todayStr),
+        DailyRepository.listRecentDays(accountId, 90),
+        HourlyRepository.getHourlyDistribution(accountId, thirtyDaysAgoStr, todayStr),
+      ]);
 
-    // 2. 7-Day & 30-Day summaries
-    const past7Days = await DailyRepository.listByRange(accountId, sevenDaysAgoStr, todayStr);
-    const past14Days = await DailyRepository.listByRange(accountId, fourteenDaysAgoStr, todayStr);
-    const past30Days = await DailyRepository.listByRange(accountId, thirtyDaysAgoStr, todayStr);
+      const todaySummary = this.buildSummary(todayDaily, account.trackingStartedAt);
+      const sevenDaysSummary = this.aggregateDailyList(past7Days, account.trackingStartedAt, 7);
+      const thirtyDaysSummary = this.aggregateDailyList(past30Days, account.trackingStartedAt, 30);
 
-    const sevenDaysSummary = this.aggregateDailyList(past7Days, account.trackingStartedAt, 7);
-    const thirtyDaysSummary = this.aggregateDailyList(past30Days, account.trackingStartedAt, 30);
+      // Weekly Trend (Current 7 days vs Previous 7 days)
+      const prev7Days = past14Days.filter((d) => d.date < sevenDaysAgoStr);
+      const weeklyTrend = this.calculateTrend(past7Days, prev7Days);
 
-    // 3. Weekly Trend (Current 7 days vs Previous 7 days)
-    const prev7Days = past14Days.filter((d) => d.date < sevenDaysAgoStr);
-    const weeklyTrend = this.calculateTrend(past7Days, prev7Days);
+      // Streaks & Personal Bests
+      const streaks = this.calculateStreaks(allDays, todayStr);
+      const personalBests = this.calculatePersonalBests(allDays);
 
-    // 4. Streaks
-    const allDays = await DailyRepository.listRecentDays(accountId, 90);
-    const streaks = this.calculateStreaks(allDays, todayStr);
+      // Quiet Hours & 24h Heatmap
+      const quietHours = this.detectQuietHours(hourlyData);
 
-    // 5. Personal Bests
-    const personalBests = this.calculatePersonalBests(allDays);
-
-    // 6. Quiet Hours & 24h Heatmap
-    const hourlyData = await HourlyRepository.getHourlyDistribution(
-      accountId,
-      thirtyDaysAgoStr,
-      todayStr
-    );
-    const quietHours = this.detectQuietHours(hourlyData);
-
-    // 7. Anomalies (Z-Score on 14-day rolling window)
-    const anomalies = this.detectAnomalies(past14Days, todayDaily);
+      // Anomalies (Z-Score on 14-day rolling window)
+      const anomalies = this.detectAnomalies(past14Days, todayDaily);
 
     return {
       account: {
@@ -84,6 +88,7 @@ export class AnalyticsService {
       quietHours,
       anomalies,
     };
+    });
   }
 
   /**

@@ -11,37 +11,55 @@ export interface CreateUserData {
   timezone?: string;
 }
 
+import { cache } from "@/lib/cache";
+
 export class UserRepository {
   static async findByTelegramId(telegramId: number) {
-    const rows = await db
-      .select()
-      .from(users)
-      .where(eq(users.telegramId, telegramId))
-      .limit(1);
-    return rows[0] || null;
+    const cacheKey = `user:tg:${telegramId}`;
+    return cache.getOrSet(cacheKey, async () => {
+      const rows = await db
+        .select()
+        .from(users)
+        .where(eq(users.telegramId, telegramId))
+        .limit(1);
+      return rows[0] || null;
+    }, 120);
   }
 
   static async findById(id: string) {
-    const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
-    return rows[0] || null;
+    const cacheKey = `user:id:${id}`;
+    return cache.getOrSet(cacheKey, async () => {
+      const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
+      return rows[0] || null;
+    }, 120);
   }
 
   static async findOrCreate(data: CreateUserData) {
     const existing = await this.findByTelegramId(data.telegramId);
     if (existing) {
-      // Update profile info if changed
-      const [updated] = await db
-        .update(users)
-        .set({
-          username: data.username ?? existing.username,
-          firstName: data.firstName ?? existing.firstName,
-          lastName: data.lastName ?? existing.lastName,
-          languageCode: data.languageCode ?? existing.languageCode,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, existing.id))
-        .returning();
-      return updated;
+      const needsUpdate =
+        (data.username !== undefined && data.username !== existing.username) ||
+        (data.firstName !== undefined && data.firstName !== existing.firstName) ||
+        (data.lastName !== undefined && data.lastName !== existing.lastName) ||
+        (data.languageCode !== undefined && data.languageCode !== existing.languageCode);
+
+      if (needsUpdate) {
+        const [updated] = await db
+          .update(users)
+          .set({
+            username: data.username ?? existing.username,
+            firstName: data.firstName ?? existing.firstName,
+            lastName: data.lastName ?? existing.lastName,
+            languageCode: data.languageCode ?? existing.languageCode,
+            updatedAt: new Date(),
+          })
+          .where(eq(users.id, existing.id))
+          .returning();
+        cache.set(`user:tg:${data.telegramId}`, updated, 120);
+        cache.set(`user:id:${existing.id}`, updated, 120);
+        return updated;
+      }
+      return existing;
     }
 
     // Create user and default settings in a single flow
@@ -65,6 +83,9 @@ export class UserRepository {
         timezone: data.timezone || "UTC",
       })
       .onConflictDoNothing();
+
+    cache.set(`user:tg:${data.telegramId}`, newUser, 120);
+    cache.set(`user:id:${newUser.id}`, newUser, 120);
 
     return newUser;
   }

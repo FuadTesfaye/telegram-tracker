@@ -1,8 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { BotMenus } from "../../src/server/bot/menus";
+import { BotMenus, getSafeWebAppUrl } from "../../src/server/bot/menus";
 import { getTelegramBot } from "../../src/server/bot/bot";
 
 describe("Telegram Bot Menus & Choice Hub", () => {
+  it("ensures getSafeWebAppUrl always returns a valid HTTPS URL", () => {
+    const url = getSafeWebAppUrl();
+    expect(url.startsWith("https://")).toBe(true);
+    expect(url).not.toContain("localhost");
+  });
+
   it("generates the main menu with all 9 choice hub buttons and Mini App launch button", () => {
     const kb = BotMenus.mainMenu();
     const inlineButtons = kb.inline_keyboard.flat();
@@ -11,6 +17,7 @@ describe("Telegram Bot Menus & Choice Hub", () => {
     const webAppBtn = inlineButtons.find((b: any) => b.web_app !== undefined);
     expect(webAppBtn).toBeDefined();
     expect((webAppBtn as any).text).toContain("Launch Full Mini App Dashboard");
+    expect((webAppBtn as any).web_app.url.startsWith("https://")).toBe(true);
 
     // Verify all 9 Choice Hub action callbacks exist
     const callbackDataList = inlineButtons
@@ -26,6 +33,11 @@ describe("Telegram Bot Menus & Choice Hub", () => {
     expect(callbackDataList).toContain("action:awards");
     expect(callbackDataList).toContain("action:accounts");
     expect(callbackDataList).toContain("action:help");
+
+    // Ensure all callback data is <= 64 bytes
+    for (const cb of callbackDataList) {
+      expect(Buffer.byteLength(cb, "utf8")).toBeLessThanOrEqual(64);
+    }
   });
 
   it("generates persistent bottom reply keyboard with 1-tap quick navigation", () => {
@@ -46,45 +58,54 @@ describe("Telegram Bot Menus & Choice Hub", () => {
     expect(texts).toContain("⚙️ Choice Hub");
   });
 
-  it("generates roast level picker with 4 intensity levels and account targets", () => {
+  it("generates roast level picker with 4 intensity levels and account targets within 64 byte limit", () => {
     const mockAccounts = [
-      { id: "acc1", accountId: "acc1", displayName: "Alice", username: "alice" },
-      { id: "acc2", accountId: "acc2", displayName: "Bob", username: "bob" },
+      { id: "0de130c1-ee4c-4c32-9366-353e207e6446", accountId: "0de130c1-ee4c-4c32-9366-353e207e6446", displayName: "Alice", username: "alice" },
+      { id: "1de130c1-ee4c-4c32-9366-353e207e6447", accountId: "1de130c1-ee4c-4c32-9366-353e207e6447", displayName: "Bob", username: "bob" },
     ];
 
-    const kb = BotMenus.roastPickerMenu(mockAccounts, "acc1", "brutal");
+    const kb = BotMenus.roastPickerMenu(mockAccounts, "0de130c1-ee4c-4c32-9366-353e207e6446", "brutal");
     const buttons = kb.inline_keyboard.flat();
     const callbackDataList = buttons.map((b: any) => b.callback_data).filter(Boolean);
 
     // Verify intensity switches exist
-    expect(callbackDataList).toContain("action:set_roast_lvl:friendly:acc1");
-    expect(callbackDataList).toContain("action:set_roast_lvl:normal:acc1");
-    expect(callbackDataList).toContain("action:set_roast_lvl:brutal:acc1");
-    expect(callbackDataList).toContain("action:set_roast_lvl:nuclear:acc1");
+    expect(callbackDataList).toContain("r_lvl:friendly:0de130c1-ee4c-4c32-9366-353e207e6446");
+    expect(callbackDataList).toContain("r_lvl:normal:0de130c1-ee4c-4c32-9366-353e207e6446");
+    expect(callbackDataList).toContain("r_lvl:brutal:0de130c1-ee4c-4c32-9366-353e207e6446");
+    expect(callbackDataList).toContain("r_lvl:nuclear:0de130c1-ee4c-4c32-9366-353e207e6446");
 
     // Verify target account selection exists
-    expect(callbackDataList).toContain("action:select_roast_acc:acc1");
-    expect(callbackDataList).toContain("action:select_roast_acc:acc2");
+    expect(callbackDataList).toContain("r_acc:0de130c1-ee4c-4c32-9366-353e207e6446");
+    expect(callbackDataList).toContain("r_acc:1de130c1-ee4c-4c32-9366-353e207e6447");
 
     // Verify re-roast and return to menu exist
-    expect(callbackDataList).toContain("action:re_roast:acc1:brutal");
+    expect(callbackDataList).toContain("r_again:0de130c1-ee4c-4c32-9366-353e207e6446:brutal");
     expect(callbackDataList).toContain("action:home");
+
+    // Ensure all callback data is <= 64 bytes (strict Telegram Bot API constraint)
+    for (const cb of callbackDataList) {
+      expect(Buffer.byteLength(cb, "utf8")).toBeLessThanOrEqual(64);
+    }
   });
 
-  it("generates rival showdown picker menu with designation actions", () => {
+  it("generates rival showdown picker menu with designation actions within 64 byte limit", () => {
     const mockAccounts = [
-      { id: "acc1", accountId: "acc1", displayName: "Alice", username: "alice" },
-      { id: "acc2", accountId: "acc2", displayName: "Bob", username: "bob" },
+      { id: "0de130c1-ee4c-4c32-9366-353e207e6446", accountId: "0de130c1-ee4c-4c32-9366-353e207e6446", displayName: "Alice", username: "alice" },
+      { id: "1de130c1-ee4c-4c32-9366-353e207e6447", accountId: "1de130c1-ee4c-4c32-9366-353e207e6447", displayName: "Bob", username: "bob" },
     ];
 
-    const kb = BotMenus.rivalPickerMenu(mockAccounts, "acc2");
+    const kb = BotMenus.rivalPickerMenu(mockAccounts, "1de130c1-ee4c-4c32-9366-353e207e6447");
     const buttons = kb.inline_keyboard.flat();
     const callbackDataList = buttons.map((b: any) => b.callback_data).filter(Boolean);
 
-    expect(callbackDataList).toContain("action:set_rival:acc1");
-    expect(callbackDataList).toContain("action:set_rival:acc2");
+    expect(callbackDataList).toContain("r_rival:0de130c1-ee4c-4c32-9366-353e207e6446");
+    expect(callbackDataList).toContain("r_rival:1de130c1-ee4c-4c32-9366-353e207e6447");
     expect(callbackDataList).toContain("action:league");
     expect(callbackDataList).toContain("action:home");
+
+    for (const cb of callbackDataList) {
+      expect(Buffer.byteLength(cb, "utf8")).toBeLessThanOrEqual(64);
+    }
   });
 
   it("generates wagers menu with navigation to league and rival", () => {
@@ -97,35 +118,44 @@ describe("Telegram Bot Menus & Choice Hub", () => {
     expect(callbackDataList).toContain("action:home");
   });
 
-  it("generates compare menu with switchable competitor options", () => {
+  it("generates compare menu with switchable competitor options within 64 byte limit", () => {
     const mockAccounts = [
-      { id: "acc1", accountId: "acc1", displayName: "Alice", username: "alice" },
-      { id: "acc2", accountId: "acc2", displayName: "Bob", username: "bob" },
-      { id: "acc3", accountId: "acc3", displayName: "Charlie", username: "charlie" },
+      { id: "0de130c1-ee4c-4c32-9366-353e207e6446", accountId: "0de130c1-ee4c-4c32-9366-353e207e6446", displayName: "Alice", username: "alice" },
+      { id: "1de130c1-ee4c-4c32-9366-353e207e6447", accountId: "1de130c1-ee4c-4c32-9366-353e207e6447", displayName: "Bob", username: "bob" },
+      { id: "2de130c1-ee4c-4c32-9366-353e207e6448", accountId: "2de130c1-ee4c-4c32-9366-353e207e6448", displayName: "Charlie", username: "charlie" },
     ];
 
-    const kb = BotMenus.compareMenu(mockAccounts, "acc1", "acc2");
+    const kb = BotMenus.compareMenu(mockAccounts, "0de130c1-ee4c-4c32-9366-353e207e6446", "1de130c1-ee4c-4c32-9366-353e207e6447");
     const buttons = kb.inline_keyboard.flat();
     const callbackDataList = buttons.map((b: any) => b.callback_data).filter(Boolean);
 
-    expect(callbackDataList).toContain("action:compare_with:acc3");
+    expect(callbackDataList).toContain("cmp_with:2de130c1-ee4c-4c32-9366-353e207e6448");
     expect(callbackDataList).toContain("action:league");
     expect(callbackDataList).toContain("action:home");
+
+    for (const cb of callbackDataList) {
+      expect(Buffer.byteLength(cb, "utf8")).toBeLessThanOrEqual(64);
+    }
   });
 
-  it("generates account detail menu with overview, roast, rival, pause/resume, and delete", () => {
-    const activeKb = BotMenus.accountMenu("acc1", true);
+  it("generates account detail menu with overview, roast, rival, pause/resume, and delete within 64 bytes", () => {
+    const testId = "0de130c1-ee4c-4c32-9366-353e207e6446";
+    const activeKb = BotMenus.accountMenu(testId, true);
     const activeButtons = activeKb.inline_keyboard.flat();
     const activeCallbacks = activeButtons.map((b: any) => b.callback_data).filter(Boolean);
 
-    expect(activeCallbacks).toContain("action:view_acc:acc1");
-    expect(activeCallbacks).toContain("action:select_roast_acc:acc1");
-    expect(activeCallbacks).toContain("action:set_rival:acc1");
-    expect(activeCallbacks).toContain("action:toggle_track:acc1");
-    expect(activeCallbacks).toContain("action:delete_acc:acc1");
+    expect(activeCallbacks).toContain(`acc_v:${testId}`);
+    expect(activeCallbacks).toContain(`r_acc:${testId}`);
+    expect(activeCallbacks).toContain(`r_rival:${testId}`);
+    expect(activeCallbacks).toContain(`acc_tog:${testId}`);
+    expect(activeCallbacks).toContain(`acc_del:${testId}`);
     expect(activeCallbacks).toContain("action:accounts");
 
-    const pausedKb = BotMenus.accountMenu("acc1", false);
+    for (const cb of activeCallbacks) {
+      expect(Buffer.byteLength(cb, "utf8")).toBeLessThanOrEqual(64);
+    }
+
+    const pausedKb = BotMenus.accountMenu(testId, false);
     const pausedButtons = pausedKb.inline_keyboard.flat();
     const resumeBtn = pausedButtons.find((b: any) => b.text.includes("Resume"));
     expect(resumeBtn).toBeDefined();
@@ -137,3 +167,4 @@ describe("Telegram Bot Menus & Choice Hub", () => {
     expect(bot.botInfo.username).toBe("lurkening_bot");
   });
 });
+

@@ -145,64 +145,61 @@ export class LeagueService {
       const sevenDaysAgoStr = this.getPastDateString(7, timezone);
       const todayStr = this.getTodayDateString(timezone);
 
-      const competitorList: LeagueCompetitor[] = [];
+      const competitorList: LeagueCompetitor[] = await Promise.all(
+        accounts.map(async (acc) => {
+          const [dailyRows, sessions] = await Promise.all([
+            DailyRepository.listByRange(acc.id, sevenDaysAgoStr, todayStr),
+            SessionRepository.listByDateRange(
+              acc.id,
+              new Date(Date.now() - 7 * 24 * 3600 * 1000),
+              new Date()
+            ),
+          ]);
 
-      for (const acc of accounts) {
-        const dailyRows = await DailyRepository.listByRange(
-          acc.id,
-          sevenDaysAgoStr,
-          todayStr
-        );
+          let totalSeconds = 0;
+          let totalSessions = 0;
+          let longestSession = 0;
 
-      let totalSeconds = 0;
-      let totalSessions = 0;
-      let longestSession = 0;
+          for (const d of dailyRows) {
+            totalSeconds += d.activeSeconds;
+            totalSessions += d.sessionCount;
+            if (d.longestSessionSeconds > longestSession) {
+              longestSession = d.longestSessionSeconds;
+            }
+          }
 
-      for (const d of dailyRows) {
-        totalSeconds += d.activeSeconds;
-        totalSessions += d.sessionCount;
-        if (d.longestSessionSeconds > longestSession) {
-          longestSession = d.longestSessionSeconds;
-        }
-      }
+          let nightSecs = 0;
+          let morningSecs = 0;
+          for (const s of sessions) {
+            const hr = s.startedAt.getUTCHours();
+            const dur = s.durationSeconds || 0;
+            if (hr >= 22 || hr < 6) nightSecs += dur;
+            if (hr >= 6 && hr < 9) morningSecs += dur;
+          }
 
-      const sessions = await SessionRepository.listByDateRange(
-        acc.id,
-        new Date(Date.now() - 7 * 24 * 3600 * 1000),
-        new Date()
+          const tier = this.getTier(totalSeconds);
+
+          return {
+            accountId: acc.id,
+            telegramUserId: acc.telegramUserId,
+            username: acc.username,
+            displayName: acc.displayName || (acc.username ? `@${acc.username}` : "Account"),
+            label: acc.label,
+            rank: 1,
+            totalActiveSeconds: totalSeconds,
+            formattedDuration: formatDuration(totalSeconds),
+            sessionCount: totalSessions,
+            longestSessionSeconds: longestSession,
+            formattedLongestSession: formatDuration(longestSession),
+            nightActivitySeconds: nightSecs,
+            morningActivitySeconds: morningSecs,
+            title: "", // Assigned after sorting
+            tier,
+            gapToLeaderSeconds: 0,
+            formattedGapToLeader: "0m",
+          };
+        })
       );
-
-      let nightSecs = 0;
-      let morningSecs = 0;
-      for (const s of sessions) {
-        const hr = s.startedAt.getUTCHours();
-        const dur = s.durationSeconds || 0;
-        if (hr >= 22 || hr < 6) nightSecs += dur;
-        if (hr >= 6 && hr < 9) morningSecs += dur;
-      }
-
-      const tier = this.getTier(totalSeconds);
-
-      competitorList.push({
-        accountId: acc.id,
-        telegramUserId: acc.telegramUserId,
-        username: acc.username,
-        displayName: acc.displayName || (acc.username ? `@${acc.username}` : "Account"),
-        label: acc.label,
-        rank: 1,
-        totalActiveSeconds: totalSeconds,
-        formattedDuration: formatDuration(totalSeconds),
-        sessionCount: totalSessions,
-        longestSessionSeconds: longestSession,
-        formattedLongestSession: formatDuration(longestSession),
-        nightActivitySeconds: nightSecs,
-        morningActivitySeconds: morningSecs,
-        title: "", // Assigned after sorting
-        tier,
-        gapToLeaderSeconds: 0,
-        formattedGapToLeader: "0m",
-      });
-    }
 
     // Sort by active seconds descending
     competitorList.sort((a, b) => b.totalActiveSeconds - a.totalActiveSeconds);

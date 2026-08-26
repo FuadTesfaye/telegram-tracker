@@ -9,6 +9,24 @@ export interface MenuAccountItem {
   username: string | null;
 }
 
+export function getSafeWebAppUrl(): string {
+  let url = env.NEXT_PUBLIC_APP_URL || "https://telegram-tracker-alpha.vercel.app";
+  if (!url || typeof url !== "string") {
+    return "https://telegram-tracker-alpha.vercel.app";
+  }
+  if (url.includes("localhost") || url.includes("127.0.0.1")) {
+    return "https://telegram-tracker-alpha.vercel.app";
+  }
+  if (!url.startsWith("https://")) {
+    if (url.startsWith("http://")) {
+      url = url.replace("http://", "https://");
+    } else {
+      url = `https://${url}`;
+    }
+  }
+  return url;
+}
+
 export class BotMenus {
   /**
    * Persistent bottom Reply Keyboard for 1-tap fast navigation
@@ -27,7 +45,7 @@ export class BotMenus {
    * Main welcome / choice hub inline keyboard
    */
   static mainMenu() {
-    const webAppUrl = env.NEXT_PUBLIC_APP_URL;
+    const webAppUrl = getSafeWebAppUrl();
     return new InlineKeyboard()
       .webApp("🚀 Launch Full Mini App Dashboard", webAppUrl)
       .row()
@@ -66,18 +84,19 @@ export class BotMenus {
         const accId = acc.accountId || acc.id || "";
         const name = acc.displayName || (acc.username ? `@${acc.username}` : "Account");
         const isSelected = selectedAccountId === accId;
-        kb.text(isSelected ? `● Target: ${name}` : `Target: ${name}`, `action:select_roast_acc:${accId}`).row();
+        kb.text(isSelected ? `● Target: ${name}` : `Target: ${name}`, `r_acc:${accId}`).row();
       }
     }
 
-    // Intensity levels
-    kb.text(currentLevel === "friendly" ? "✓ 🙂 Friendly" : "🙂 Friendly", `action:set_roast_lvl:friendly:${selectedAccountId || "top"}`)
-      .text(currentLevel === "normal" ? "✓ 🔥 Normal" : "🔥 Normal", `action:set_roast_lvl:normal:${selectedAccountId || "top"}`)
+    // Intensity levels (using short prefixes so callback_data never exceeds 64 bytes)
+    const targetId = selectedAccountId || "top";
+    kb.text(currentLevel === "friendly" ? "✓ 🙂 Friendly" : "🙂 Friendly", `r_lvl:friendly:${targetId}`)
+      .text(currentLevel === "normal" ? "✓ 🔥 Normal" : "🔥 Normal", `r_lvl:normal:${targetId}`)
       .row()
-      .text(currentLevel === "brutal" ? "✓ 💀 Brutal" : "💀 Brutal", `action:set_roast_lvl:brutal:${selectedAccountId || "top"}`)
-      .text(currentLevel === "nuclear" ? "✓ ☠️ Nuclear" : "☠️ Nuclear", `action:set_roast_lvl:nuclear:${selectedAccountId || "top"}`)
+      .text(currentLevel === "brutal" ? "✓ 💀 Brutal" : "💀 Brutal", `r_lvl:brutal:${targetId}`)
+      .text(currentLevel === "nuclear" ? "✓ ☠️ Nuclear" : "☠️ Nuclear", `r_lvl:nuclear:${targetId}`)
       .row()
-      .text("🔄 Roast Again", `action:re_roast:${selectedAccountId || "top"}:${currentLevel}`)
+      .text("🔄 Roast Again", `r_again:${targetId}:${currentLevel}`)
       .text("« Back to Menu", "action:home");
 
     return kb;
@@ -97,7 +116,7 @@ export class BotMenus {
       const isRival = currentRivalId === accId;
       kb.text(
         isRival ? `👑 Designated Rival: ${name}` : `⚔️ Challenge ${name}`,
-        `action:set_rival:${accId}`
+        `r_rival:${accId}`
       ).row();
     }
     kb.text("🏆 View League Standings", "action:league").row();
@@ -126,7 +145,7 @@ export class BotMenus {
         const accId = acc.accountId || acc.id || "";
         const name = acc.displayName || (acc.username ? `@${acc.username}` : "Account");
         if (accId !== accAId && accId !== accBId) {
-          kb.text(`Compare with ${name}`, `action:compare_with:${accId}`).row();
+          kb.text(`Compare with ${name}`, `cmp_with:${accId}`).row();
         }
       }
     }
@@ -162,7 +181,7 @@ export class BotMenus {
    */
   static trackConfirmMenu(username: string) {
     return new InlineKeyboard()
-      .text("▶️ Enroll in League", `action:confirm_track:${username}`)
+      .text("▶️ Enroll in League", `trk_ok:${username}`)
       .row()
       .text("❌ Cancel", "action:home");
   }
@@ -172,19 +191,19 @@ export class BotMenus {
    */
   static accountMenu(accountId: string, isTrackingActive: boolean) {
     const kb = new InlineKeyboard()
-      .text("📊 Overview", `action:view_acc:${accountId}`)
-      .text("🔥 Roast Account", `action:select_roast_acc:${accountId}`)
+      .text("📊 Overview", `acc_v:${accountId}`)
+      .text("🔥 Roast Account", `r_acc:${accountId}`)
       .row()
-      .text("⚔️ Set as My Rival", `action:set_rival:${accountId}`)
+      .text("⚔️ Set as My Rival", `r_rival:${accountId}`)
       .row();
 
     if (isTrackingActive) {
-      kb.text("⏸ Pause Tracking", `action:toggle_track:${accountId}`);
+      kb.text("⏸ Pause Tracking", `acc_tog:${accountId}`);
     } else {
-      kb.text("▶️ Resume Tracking", `action:toggle_track:${accountId}`);
+      kb.text("▶️ Resume Tracking", `acc_tog:${accountId}`);
     }
 
-    kb.text("🗑 Remove Slot", `action:delete_acc:${accountId}`)
+    kb.text("🗑 Remove Slot", `acc_del:${accountId}`)
       .row()
       .text("« Back to Slots", "action:accounts");
 
@@ -199,7 +218,7 @@ export class BotMenus {
     for (const acc of accounts) {
       const accId = acc.accountId || acc.id || "";
       const name = acc.displayName || (acc.username ? `@${acc.username}` : "Account");
-      kb.text(`● ${name}`, `action:view_acc:${accId}`).row();
+      kb.text(`● ${name}`, `acc_v:${accId}`).row();
     }
     if (accounts.length < 3) {
       kb.text("➕ Add New Competitor", "action:track").row();

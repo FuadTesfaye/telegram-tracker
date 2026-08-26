@@ -19,10 +19,20 @@ const envSchema = z.object({
   SESSION_ENCRYPTION_KEY: z.string().default("sec_jwtSecretKeyForDagmawiDispatchBroadsheet2026"),
   NEXT_PUBLIC_APP_URL: z
     .string()
-    .default(
-      process.env.NEXT_PUBLIC_APP_URL ||
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://telegram-tracker-alpha.vercel.app")
-    ),
+    .optional()
+    .transform((val) => {
+      if (!val || val.includes("localhost") || val.includes("127.0.0.1") || !val.startsWith("http")) {
+        if (process.env.VERCEL_URL) {
+          return `https://${process.env.VERCEL_URL}`;
+        }
+        return "https://telegram-tracker-alpha.vercel.app";
+      }
+      if (val.startsWith("http://")) {
+        return val.replace("http://", "https://");
+      }
+      return val;
+    })
+    .default("https://telegram-tracker-alpha.vercel.app"),
   TELEGRAM_WEBHOOK_SECRET: z.string().default("sec_r3nd0m1z3dW3bh00kS3cr3tForDagmawi"),
   CRON_SECRET: z.string().default("sec_r3nd0m1z3dCr0nS3cr3tForDagmawi"),
   GROQ_API_KEY_1: z.string().optional(),
